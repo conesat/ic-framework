@@ -11,7 +11,7 @@
 
 IC Framework 是一个Java开发框架，基于Spring Boot 3.5.3构建，提供了一套完整的开发脚手架。框架集成了认证授权、数据访问、代码生成、缓存管理等核心功能，旨在提高开发效率，规范代码结构。
 
-搭建项目请移步[ic-framework-service](https://github.com/conesat/ic-framework-service) [ic-framework-service是使用ic framework集成鉴权、组织机构等基础功能的项目]
+搭建项目请移步[ic-framework-service](http://github.com/conesat/ic-framework-service) [ic-framework-service是使用ic framework集成鉴权、组织机构等基础功能的项目]
 
 ### ✋🏻 前言
 佛系作者，开源纯属个人爱好，可以不爱请别伤害
