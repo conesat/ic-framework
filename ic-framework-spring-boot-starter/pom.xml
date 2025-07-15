@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>cn.icframework</groupId>
+        <artifactId>ic-framework-dependencies</artifactId>
+        <version>1.0.0</version>
+        <relativePath>../ic-framework-dependencies/pom.xml</relativePath>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>ic-framework-spring-boot-starter</artifactId>
+    <packaging>jar</packaging>
+    <name>ic-framework-spring-boot-starter</name>
+    <description>IC Framework - 自动注册</description>
+
+    <dependencies>
+        <!-- IC Framework Auth 模块 -->
+        <dependency>
+            <groupId>cn.icframework</groupId>
+            <artifactId>ic-framework-auth</artifactId>
+        </dependency>
+
+        <!-- IC Framework Common 模块 -->
+        <dependency>
+            <groupId>cn.icframework</groupId>
+            <artifactId>ic-framework-common</artifactId>
+        </dependency>
+
+        <!-- IC Framework Core 模块 -->
+        <dependency>
+            <groupId>cn.icframework</groupId>
+            <artifactId>ic-framework-core</artifactId>
+        </dependency>
+
+        <!-- IC Framework Mybatis 模块 -->
+        <dependency>
+            <groupId>cn.icframework</groupId>
+            <artifactId>ic-framework-mybatis</artifactId>
+        </dependency>
+
+        <!-- IC Framework Mybatis 自动生成模块 -->
+        <dependency>
+            <groupId>cn.icframework</groupId>
+            <artifactId>ic-framework-mybatis-processor</artifactId>
+        </dependency>
+
+        <!-- IC Framework Dber ddl工具 -->
+        <dependency>
+            <groupId>cn.icframework</groupId>
+            <artifactId>ic-framework-dber</artifactId>
+        </dependency>
+
+        <!-- IC Framework Cache 模块 -->
+        <dependency>
+            <groupId>cn.icframework</groupId>
+            <artifactId>ic-framework-cache</artifactId>
+        </dependency>
+
+        <!-- Spring Boot Starter -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+
+        <!-- Spring Boot Data Redis Starter - 确保RedisTemplate可用 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+
+        <!-- Caffeine Cache - 确保缓存功能可用 -->
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project> 

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>cn.icframework</groupId>
+        <artifactId>ic-framework-dependencies</artifactId>
+        <version>1.0.0</version>
+        <relativePath>../ic-framework-dependencies/pom.xml</relativePath>
+    </parent>
+
+    <name>ic-framework-mybatis-processor</name>
+    <artifactId>ic-framework-mybatis-processor</artifactId>
+    <packaging>jar</packaging>
+    <description>IC Framework - mybatis-APT模板</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>cn.icframework</groupId>
+            <artifactId>ic-framework-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>cn.icframework</groupId>
+            <artifactId>ic-framework-gen-template</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>cn.icframework</groupId>
+            <artifactId>ic-framework-annotation</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>cn.icframework</groupId>
+            <artifactId>ic-framework-mybatis</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <proc>none</proc>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

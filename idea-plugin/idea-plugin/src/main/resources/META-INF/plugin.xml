@@ -1,0 +1,57 @@
+<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
+<idea-plugin>
+    <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
+    <id>cn.icframework.idea-plugin</id>
+
+    <depends>com.intellij.modules.java</depends>
+
+    <!-- Public plugin name should be written in Title Case.
+         Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-name -->
+    <name>IC Framework</name>
+
+    <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
+    <vendor email="1092501244@qq.com" url="http://www.chinahg.top">IceFire</vendor>
+
+    <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
+         Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
+         Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
+    <description>
+    <![CDATA[
+        ic framework idea plugin.<br>
+        <em>ic开发框架idea插件</em>
+    ]]>
+    </description>
+
+    <!-- Product and plugin compatibility requirements.
+         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
+    <depends>com.intellij.modules.platform</depends>
+
+    <!-- Extension points defined by the plugin.
+         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
+    <extensions defaultExtensionNs="com.intellij">
+        <notificationGroup id="IcFrameworkWorkNotificationGroup"
+                           displayType="BALLOON"
+                           key="notification.group.ic.framework"/>
+    </extensions>
+    <actions>
+        <action id="cn.icframework.actions.GenAction"
+                class="cn.icframework.actions.GenAction"
+                text="Ic Gen"
+                description="创建ic framework模块">
+            <add-to-group group-id="NewGroup" anchor="first"/>
+        </action>
+        <action id="GenDefAction"
+                class="cn.icframework.actions.GenDefAction"
+                text="Gen IC Table Def"
+                description="生成Def">
+            <add-to-group group-id="GenerateGroup" anchor="first"/>
+        </action>
+        <action id="GenModelAction"
+                class="cn.icframework.actions.GenModelAction"
+                text="Gen IC Model"
+                description="生成Ic模块">
+            <add-to-group group-id="GenerateGroup" anchor="first"/>
+        </action>
+    </actions>
+
+</idea-plugin>

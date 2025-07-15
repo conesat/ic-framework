@@ -1,0 +1,96 @@
+package cn.icframework.gen.template.java;
+
+
+/**
+ * @author hzl
+ * @since 2023/6/5
+ */
+public class WrapperBuilderTemplate {
+    public final static String SQL_WRAPPER_TEMPLATE = """
+            package #PACKAGE_NAME.wrapperbuilder;
+            
+            import cn.icframework.common.consts.RequestValue;
+            import cn.icframework.mybatis.query.QueryField;
+            import #PACKAGE_NAME.def.#MODEL_NAME_FIST_UPDef;
+            import wrapperbuilder.basic.cn.icframework.core.BasicWrapperBuilder;
+            import wrapperbuilder.basic.cn.icframework.core.DefaultOrderBy;
+            import wrapperbuilder.basic.cn.icframework.core.OrderBuilder;
+            import wrapperbuilder.basic.cn.icframework.core.QueryParams;
+            import cn.icframework.core.common.bean.OrderItem;
+            import cn.icframework.mybatis.wrapper.SqlWrapper;
+            import org.springframework.stereotype.Component;
+            
+            import java.util.Collections;
+            import java.util.List;
+            
+            /**
+             * wrapper构建器，推荐sql构造在这里实现，避免Service过于臃肿
+             * @author #AUTHOR
+             * @since #DATE
+             */
+            @Component
+            public class #MODEL_NAME_FIST_UPWrapperBuilder extends BasicWrapperBuilder<#MODEL_NAME_FIST_UPDef> {
+            
+                /**
+                * 返回一个数据库定义对象
+                */
+                public #MODEL_NAME_FIST_UPWrapperBuilder() {
+                    super(#MODEL_NAME_FIST_UPDef.table());
+                }
+            
+                /**
+                 * 默认list查询构造
+                 * 遍历查询条件，此方法会在AdminApi调用page时使用，你可以仿照page接口，用于其他接口查询
+                 * params 是前端传入的所有参数
+                 * 在这里根据参数和值 去构建SQLWrapper 并返回
+                 *
+                 * @param params 前端传入的所有参数
+                 * @param def    数据库映射
+                 * @return 构建的SQLWrapper条件
+                 */
+                @Override
+                protected SqlWrapper list(QueryParams params, #MODEL_NAME_FIST_UPDef def) {
+                    SqlWrapper sqlWrapper = SELECT_FROM(def);
+                    params.forEach((key, rv) -> {
+                        Object value = rv.getValue(); // 单个参数
+                        Object[] values = rv.getValues(); // 数组参数
+                        switch (key) {
+                            case "id" -> sqlWrapper.WHERE(def.id.eq(value));
+                            // case ParamsConst.SEARCH_KEY -> sqlWrapper.WHERE(def.name.like(value));
+                        }
+                    });
+                    return sqlWrapper;
+                }
+            
+                // --------------------- 排序处理分割线 下面默认的排序规则处理流程 -------------------------
+            
+                /**
+                 * 处理排序条件，页面传参时需要将排序条件转成json字符串，key必须是 orders。例如 orders:"[{column:'排序字段或自定义内容', asc:false},{column:'排序字段或自定义内容', asc:true}]"
+                 *
+                 * @param orderItem orders已经在BasicParamsHandler转成了 OrderItem数组。这里就是遍历每一项排序内容
+                 * @param def       数据库映射
+                 * @return 这里只需要返回排序的数据库字段 或者 其他条件内容。倒序还是正序是根据OrderItem判断的
+                 */
+                @Override
+                protected QueryField<?> doSort(OrderItem orderItem, #MODEL_NAME_FIST_UPDef def) {
+                    return switch (orderItem.getSortBy()) {
+                        // case "createTime" -> def.createTime;
+                        default -> null;
+                    };
+                }
+            
+                /**
+                 * 默认排序 当不满足doSort()时，会使用这里返回的内容进行排序
+                 *
+                 * @param def    数据库映射
+                 * @return 可以是多个排序条件的数组，按顺序进行排序
+                 */
+                @Override
+                protected List<DefaultOrderBy> defaultSort(#MODEL_NAME_FIST_UPDef def) {
+                     // 使用以下方法构建默认排序
+                     // return new OrderBuilder().orderDesc(def.createTime).build();
+                     return Collections.emptyList();
+                }
+            }
+            """;
+}

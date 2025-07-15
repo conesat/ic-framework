@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/ic-framework-annotation/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ic-framework-annotation/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ic-framework-auth/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ic-framework-auth/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ic-framework-cache/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ic-framework-cache/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ic-framework-common/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ic-framework-common/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ic-framework-core/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ic-framework-core/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ic-framework-dber/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ic-framework-dber/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ic-framework-dependencies/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ic-framework-dependencies/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ic-framework-gen-template/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ic-framework-gen-template/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ic-framework-gen/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ic-framework-gen/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ic-framework-mybatis-processor/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ic-framework-mybatis-processor/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ic-framework-mybatis/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ic-framework-mybatis/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ic-framework-spring-boot-starter/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ic-framework-spring-boot-starter/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ic-framework-springboot-parent/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ic-framework-springboot-parent/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ic-framework-test/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ic-framework-test/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
+  </component>
+</project>

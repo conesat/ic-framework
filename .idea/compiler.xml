@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="ic-framework-spring-boot-starter" />
+        <module name="ic-framework-dber" />
+        <module name="ic-framework-test" />
+        <module name="ic-framework-auth" />
+        <module name="ic-framework-mybatis" />
+        <module name="ic-framework-common" />
+        <module name="ic-framework-gen" />
+        <module name="ic-framework-gen-template" />
+        <module name="ic-framework-annotation" />
+        <module name="ic-framework-cache" />
+        <module name="ic-framework-core" />
+      </profile>
+    </annotationProcessing>
+  </component>
+</project>
