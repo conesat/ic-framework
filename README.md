@@ -14,6 +14,7 @@ IC Framework 是一个Java开发框架，基于Spring Boot 3.5.3构建，提供�
 搭建项目请移步[ic-framework-service](http://github.com/conesat/ic-framework-service) [ic-framework-service是使用ic framework集成鉴权、组织机构等基础功能的项目]
 
 ### ✋🏻 前言
+
 作者开发 <span style="color:#e74c3c">【短线客：一个ai股票分析k线策略训练模拟器，欢迎各位扫码体验】</span> app前期需要开发后台，
 试过热门项目[若依](https://gitee.com/y_project/RuoYi/tree/master)，若依上手简单做的也很好，但是页面与java风格不太习惯，于是决定手搓一个，这就有了框架主体。
 
@@ -22,16 +23,17 @@ IC Framework 是一个Java开发框架，基于Spring Boot 3.5.3构建，提供�
 
 如今短线客上架AppStore已经很久了，框架个人感觉还行，就决定开源出来供各位看官老爷赏乐。
 
-<img src="/doc/public/imgs/dxk.png" width="400"  alt="短线客">
+<img src="/doc/public/imgs/dxk.png" style="width: 400px;height: auto"  alt="短线客">
 
-集成框架请移步[giteee](https://gitee.com/ic-framework/ic-framework/) [github](http://github.com/conesat/ic-framework-service)，预览图：
+集成框架请移步[giteee](https://gitee.com/ic-framework/ic-framework/) [github](http://github.com/conesat/ic-framework-service)
+，预览图：
 
 <table>
 <tr>
-<td valign="top">
-<img src="/doc/public/imgs/project1.png" height="400" alt="ic-framework-service">
+<td >
+<img src="/doc/public/imgs/project1.png" alt="ic-framework-service">
 </td>
-<td valign="top"><img src="/doc/public/imgs/project2.png" height="400" alt="ic-framework-service">
+<td ><img src="/doc/public/imgs/project2.png" alt="ic-framework-service">
 </td>
 </tr>
 </table>
@@ -46,34 +48,40 @@ IC Framework 是一个Java开发框架，基于Spring Boot 3.5.3构建，提供�
 ## ✨ 主要特性
 
 ### 🗄️ Mybatis增强
+
 - 基于MyBatis的增强查询构建器
 - 支持复杂SQL查询的链式调用
 - 自动分页和排序
 - 数据库连接池优化
 
 ### 🗄️ Dber
+
 - 实体DDL
 - sql版本升级
 
 ### 🔐 认证授权
+
 - JWT Token认证
 - 基于角色的权限控制(RBAC)
 - 自动权限初始化
 - 跨域配置支持
 
 ### 🛠️ 代码生成
+
 - 自动生成CRUD代码
 - 支持Vue3前端代码生成
 - 模板化代码生成
 - 数据库表结构自动同步
 
 ### 💾 缓存管理
+
 - Redis缓存支持
 - 本地缓存(Caffeine)
 - 缓存注解支持
 - 缓存策略配置
 
 ### 🔧 工具支持
+
 - 统一异常处理
 - 全局响应封装
 - 参数校验支持
@@ -113,6 +121,7 @@ ic-framework/
 在您的Spring Boot项目中添加IC Framework依赖：
 
 ```xml
+
 <dependency>
     <groupId>cn.icframework</groupId>
     <artifactId>ic-framework-spring-boot-starter</artifactId>
@@ -151,6 +160,7 @@ spring:
 #### 4. 启动应用
 
 ```java
+
 @SpringBootApplication
 public class Application {
     public static void main(String[] args) {
@@ -162,17 +172,22 @@ public class Application {
 ## 📦 模块说明
 
 ### ic-framework-annotation
+
 提供框架中使用的各种注解，如API缓存、权限验证等注解。
 
 ### ic-framework-common
+
 通用工具模块，包含：
+
 - 配置属性管理
 - 常量定义
 - 工具类集合
 - 枚举类型
 
 ### ic-framework-auth
+
 认证授权模块，提供：
+
 - JWT Token管理
 - 权限拦截器
 - 角色权限控制
@@ -180,12 +195,16 @@ public class Application {
 - 每个接口都能默认鉴权，后台通过角色配置权限，即可访问对应接口
 
 ### ic-framework-dber
+
 数据库工具模块，提供：
+
 - 自动实体DDL-不用手动建表啦，启动就会同步数据库字段
 - sql升级-程序启动需要调整数据的，可以用sql升级功能
 
 ### ic-framework-core
+
 核心功能模块，包含：
+
 - 缓存管理
 - 异常处理
 - 工具类
@@ -194,14 +213,18 @@ public class Application {
 - 基础Service
 
 ### ic-framework-mybatis
+
 MyBatis扩展模块，提供：
+
 - 增强的查询构建器
 - 链式SQL查询
 - 自动分页
 - 复杂查询支持
 
 ### ic-framework-gen
+
 代码生成模块，支持：
+
 - 自动生成CRUD代码
 - Vue3前端代码生成
 - 数据库表结构同步
@@ -247,7 +270,9 @@ ic:
 ## 📚 使用示例
 
 ### IcMyBatis示例
+
 #### 查询，这里只展示复杂条件查询，各种join各种嵌套可以自己摸索或者待文档完善
+
 ```java
 // 多条件,select里面不写或者写table._all就是查询所有字段
 UserDef table = UserDef.table();
@@ -320,24 +345,35 @@ SqlWrapper sqlWrapper = SELECT(table.name, SELECT(table2.name).FROM(table2).WHER
         );
 ```
 
-
 #### 插入
 
 ```java
 // 基础
 User user = new User();
-user.setName("张三");
-userService.insert(user);
+user.
+
+setName("张三");
+userService.
+
+insert(user);
 
 // 批量插入
 List<User> userList = new ArrayList<>();
-userList.add(user);
-userService.insertBatch(user);
+userList.
+
+add(user);
+userService.
+
+insertBatch(user);
 
 // 批量插入如果不需要捕获异常，可以使用skipError，会用虚拟线程分批入库，大幅度提升性能
 List<User> userList = new ArrayList<>();
-userList.add(user);
-userService.insertBatch(user, true);
+userList.
+
+add(user);
+userService.
+
+insertBatch(user, true);
 
 // into select
 UserDef table = UserDef.table();
@@ -346,10 +382,12 @@ SqlWrapper insert = INSERT()
         .COLUMNS(User::getName, User::getDel, User::getId)
         .VALUES(
                 SELECT(AS(1, User::getName), AS(1, User::getDel), table.id)
-                .FROM(table)
-                .WHERE(table.name.eq("123"))
+                        .FROM(table)
+                        .WHERE(table.name.eq("123"))
         );
-userService.insert(insert);
+userService.
+
+insert(insert);
 // 得到以下sql
 // INSERT INTO user (name, del, id)
 // SELECT 1 AS `name`, 1 AS `del`, user.id
@@ -358,7 +396,9 @@ userService.insert(insert);
 ```
 
 ### MyBatis注解
+
 sql可以查了，怎么映射到实体也挺重要
+
 ```java
 
 // 结果映射，以下两个注解的前提是sql已经查询出来了
@@ -366,6 +406,7 @@ sql可以查了，怎么映射到实体也挺重要
 // sqlWrapper = select u.*,r.name as `roles.name`,dep.name as `dep.name` from user u left join user_role ur ....
 // 然后就会自动封装roles 和 dep了
 List<UserDetailVO> userVos = userService.select(sqlWrapper, UserDetailVO.class);
+
 public class UserDetailVO extends UserVO {
     /**
      * 对应mybatis的association，把一对一关系映射到实体
@@ -384,6 +425,7 @@ public class UserDetailVO extends UserVO {
 // 多层连接查询
 // 下面连接是已经查询出User信息也就是只执行了sqlWrapper = select * from user ....，然后返回需要附加如角色、部门、岗位等信息
 List<UserDetailVO> userVos = userService.select(sqlWrapper, UserDetailVO.class);
+
 public class UserDetailVO extends UserVO {
     /**
      * 所属角色
@@ -416,17 +458,18 @@ public class UserDetailVO extends UserVO {
 ### 权限控制示例
 
 ```java
+
 @RestController
 @RequestMapping("/api/user")
 public class UserController {
-    
+
     @RequireAuth(permissions = {"user:view"})
     @GetMapping("/list")
     public Result<List<User>> getUserList() {
         // 业务逻辑
         return Result.success(userList);
     }
-    
+
     @RequireAuth(permissions = {"user:add"})
     @PostMapping("/add")
     public Result<User> addUser(@RequestBody User user) {
@@ -448,9 +491,10 @@ public class UserController {
 ### 自定义配置
 
 ```java
+
 @Configuration
 public class CustomConfig {
-    
+
     @Bean
     @ConditionalOnMissingBean
     public CustomService customService() {
@@ -462,6 +506,7 @@ public class CustomConfig {
 ### 扩展功能
 
 框架支持通过以下方式扩展功能：
+
 - 实现框架提供的接口
 - 使用框架提供的注解
 - 继承框架提供的基类
@@ -493,7 +538,6 @@ public class CustomConfig {
 3. 提交您的更改 (`git commit -m 'Add some AmazingFeature'`)
 4. 推送到分支 (`git push origin feature/AmazingFeature`)
 5. 打开一个 Pull Request
-
 
 ## 📞 联系我们
 
