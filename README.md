@@ -51,6 +51,10 @@ IC Framework 是一个Java开发框架，基于Spring Boot 3.5.3构建，提供�
 - 自动分页和排序
 - 数据库连接池优化
 
+### 🗄️ Dber
+- 实体DDL
+- sql版本升级
+
 ### 🔐 认证授权
 - JWT Token认证
 - 基于角色的权限控制(RBAC)
@@ -173,11 +177,12 @@ public class Application {
 - 权限拦截器
 - 角色权限控制
 - 自动权限初始化
+- 每个接口都能默认鉴权，后台通过角色配置权限，即可访问对应接口
 
 ### ic-framework-dber
 数据库工具模块，提供：
-- 自动实体DDL
-- sql升级
+- 自动实体DDL-不用手动建表啦，启动就会同步数据库字段
+- sql升级-程序启动需要调整数据的，可以用sql升级功能
 
 ### ic-framework-core
 核心功能模块，包含：
