@@ -174,12 +174,19 @@ public class Application {
 - 角色权限控制
 - 自动权限初始化
 
+### ic-framework-dber
+数据库工具模块，提供：
+- 自动实体DDL
+- sql升级
+
 ### ic-framework-core
 核心功能模块，包含：
 - 缓存管理
 - 异常处理
 - 工具类
 - 配置管理
+- 基础Mapper
+- 基础Service
 
 ### ic-framework-mybatis
 MyBatis扩展模块，提供：
