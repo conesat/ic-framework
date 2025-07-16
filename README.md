@@ -352,6 +352,62 @@ userService.insert(insert);
 
 ```
 
+### MyBatis注解
+sql可以查了，怎么映射到实体也挺重要
+```java
+
+// 结果映射，以下两个注解的前提是sql已经查询出来了
+// 也就是如下sql：
+// sqlWrapper = select u.*,r.name as `roles.name`,dep.name as `dep.name` from user u left join user_role ur ....
+// 然后就会自动封装roles 和 dep了
+List<UserDetailVO> userVos = userService.select(sqlWrapper, UserDetailVO.class);
+public class UserDetailVO extends UserVO {
+    /**
+     * 对应mybatis的association，把一对一关系映射到实体
+     */
+    @Collection
+    private List<RoleSimpleVO> roles;
+
+    /**
+     * 对应mybatis的association，把一对一关系映射到实体
+     */
+    @Association
+    private DeptSimpleVO dep;
+
+}
+
+// 多层连接查询
+// 下面连接是已经查询出User信息也就是只执行了sqlWrapper = select * from user ....，然后返回需要附加如角色、部门、岗位等信息
+List<UserDetailVO> userVos = userService.select(sqlWrapper, UserDetailVO.class);
+public class UserDetailVO extends UserVO {
+    /**
+     * 所属角色
+     * 以下内容含义就是用 当前UserVO的idd字段，left join UserRole表的userId
+     * 再用UserRole表的roleId left join Role表的id，最终获得RoleSimpleVO信息
+     * 可以简单理解内部实现为
+     * select * from user_role ur left join role r on ur.role_id = r.id where ur.user_id = #{UserVO.id}
+     * 但是实际内部是批量处理的, 会用虚拟线程分批查询，再分配到对应的UserVO
+     * select * from user_role ur left join role r on ur.role_id = r.id where ur.user_id in #{ids}
+     */
+    @Joins(joins = {
+            @Join(joinTable = UserRole.class, selfField = "id", joinTableField = "userId"),
+            @Join(joinTable = Role.class, selfField = "roleId", joinTableField = "id")
+    })
+    private List<RoleSimpleVO> roles;
+
+    /**
+     * 所属部门
+     * 如果不是List则取join第一个
+     */
+    @Joins(joins = {
+            @Join(joinTable = DepUser.class, selfField = "id", joinTableField = "userId"),
+            @Join(joinTable = Dept.class, selfField = "depId", joinTableField = "id")
+    })
+    private DeptSimpleVO dep;
+
+}
+```
+
 ### 权限控制示例
 
 ```java
