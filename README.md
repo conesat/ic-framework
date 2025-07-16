@@ -11,7 +11,7 @@ IC Framework 是一个Java开发框架，基于Spring Boot 3.5.3构建，提供�
 
 在线文档 [http://icframework.chinahg.top](http://icframework.chinahg.top)
 
-搭建项目请移步[ic-framework-service](http://github.com/conesat/ic-framework-service) [ic-framework-service是使用ic framework集成鉴权、组织机构等基础功能的项目]
+搭建项目请移步 ic-framework-service[【giteee】](https://gitee.com/ic-framework/ic-framework-service) [【github】](http://github.com/conesat/ic-framework-service) [ic-framework-service是使用ic framework集成鉴权、组织机构等基础功能的项目]
 
 ### ✋🏻 前言
 
