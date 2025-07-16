@@ -24,9 +24,9 @@ export default defineConfig({
                 text: '文档',
                 items: [
                     {text: 'IC配置', link: '/docs/base/ic-config'},
-                    {text: '角色权限', link: '/docs/base/rp'},
+                    {text: '角色权限初始化', link: '/docs/base/rp'},
+                    {text: '岗位初始化', link: '/docs/base/pos'},
                     {text: '表实体', link: '/docs/base/entity'},
-                    {text: '表映射', link: '/docs/base/def'},
                     {text: 'API接口', link: '/docs/base/api'},
                     {text: 'WrapperBuilder', link: '/docs/base/wrapperbuilder'},
                     {text: 'Service', link: '/docs/base/service'},
@@ -37,9 +37,19 @@ export default defineConfig({
             {
                 text: 'IC-Mybatis详细使用',
                 items: [
-                    {text: '使用', link: '/docs/ic-mybatis/ic-mybatis'},
-                    {text: '查询', link: '/docs/ic-mybatis/query'},
-                    {text: '注解', link: '/docs/ic-mybatis/annotations'},
+                    {text: '配置', link: '/docs/ic-mybatis/ic-mybatis'},
+                    {text: '基础查询', link: '/docs/ic-mybatis/query'},
+                    {text: '复杂查询', link: '/docs/ic-mybatis/query-dif'},
+                    {text: '结果映射', link: '/docs/ic-mybatis/query-as'},
+                    {text: '插入', link: '/docs/ic-mybatis/insert'},
+                    {text: '更新', link: '/docs/ic-mybatis/update'},
+                ]
+            },
+            {
+                text: 'Dber',
+                items: [
+                    {text: '配置', link: '/docs/dber/config'},
+                    {text: '使用', link: '/docs/dber/dber'},
                 ]
             }
         ],

@@ -13,7 +13,7 @@ public class UserDef extends QueryTable<UserDef> {
     public static UserDef table() {
         return new UserDef(User.class);
     }
-
+    public QueryField<UserDef> _all= new QueryField<>(this, "*");
     @Override
     public UserDef newInstance() {
         return new UserDef(UserDef.class);

@@ -61,6 +61,7 @@ features:
 ## 🌐 社区与贡献
 
 - GitHub: [ic-framework](https://github.com/conesat/ic-framework)
+- Gitee: [ic-framework](https://gitee.com/ic-framework)
 - Issue/PR 欢迎提交
 - QQ邮箱：1092501244@qq.com
 

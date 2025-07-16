@@ -14,6 +14,7 @@ public class UserRoleDef extends QueryTable<UserRoleDef> {
     public static UserRoleDef table() {
         return new UserRoleDef(UserRole.class);
     }
+    public QueryField<UserRoleDef> _all= new QueryField<>(this, "*");
     @Override
     public UserRoleDef newInstance() {
         return new UserRoleDef(UserRoleDef.class);

@@ -7,25 +7,36 @@
 以下是个实体示例
 
 ````java
+
 @Getter
 @Setter
-@Index(name = "role_permission_idx", columns = {"role_id", "permission_id"}, unique = true)
-@Table(value = "sys_role_permission", comment = "角色权限")
-public class RolePermission {
+@Index(name = "dep_user_idx", columns = {"dep_id", "user_id"}, unique = true)
+@Table(value = "sys_dep_user", comment = "部门用户")
+public class DepUser {
     @Id(idType = IdType.SNOWFLAKE)
-    @TableField
     private Long id;
 
-    @TableField(value = "role_id", notNull = true, comment = "角色id")
-    private Long roleId;
+    @ForeignKey(references = Dept.class, onDelete = ForeignKeyAction.CASCADE)
+    @TableField(value = "dep_id", notNull = true, comment = "部门id")
+    private Long depId;
 
-    @TableField(value = "permission_id", notNull = true, comment = "权限id")
-    private Long permissionId;
+    @ForeignKey(references = User.class, onDelete = ForeignKeyAction.CASCADE)
+    @TableField(value = "user_id", notNull = true, comment = "用户id")
+    private Long userId;
 
-    public static RolePermission def() {
-        return new RolePermission();
+    @TableField(value = "manager", notNull = true, defaultValue = "0", comment = "是否负责人")
+    private Boolean manager;
+
+    @TableField(value = "create_time", notNull = true, comment = "创建时间", onInsertValue = "now()")
+    private LocalDateTime createTime;
+
+    public static DepUser def() {
+        DepUser depUser = new DepUser();
+        depUser.setManager(false);
+        return depUser;
     }
 }
+
 ````
 
 ## @Table
@@ -165,133 +176,59 @@ public @interface Id {
 ```
 
 
-## @RelationTable
+## @ForeignKey
 
-@RelationTable 注解用于标注实体类的映射关系，包含以下属性：
-
-```java
-@Inherited
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD})
-public @interface RelationTable {
-    /**
-     * 映射字段，必填
-     * 注意是填写数据库字段
-     */
-    String column();
-
-    /**
-     * 被注解的表内需要映射字段，必填
-     * 注意是填写数据库字段
-     */
-    String relationColumn();
-}
-```
-
-以下示例中，如果使用DepUserService查询DepUser对象则会，用dep_id字段去查询Dept对象的id；
+@ForeignKey 注解用于标注实体类的外键关系，包含以下属性：
+主要用于dber初始化数据库结构
 
 ```java
 
-@Getter
-@Setter
-@Index(name = "dep_user_idx", columns = {"dep_id", "user_id"}, unique = true)
-@Table(value = "sys_dep_user", comment = "部门用户")
-public class DepUser {
-    @Id(idType = IdType.SNOWFLAKE)
-    private Long id;
-
-    @TableField(value = "dep_id", notNull = true, comment = "部门id")
-    private Long depId;
-
-    @TableField(value = "user_id", notNull = true, comment = "用户id")
-    private Long userId;
-
-    @TableField(value = "manager", notNull = true, defaultValue = "0", comment = "是否负责人")
-    private Boolean manager;
-
-    @TableField(value = "create_time", notNull = true, comment = "创建时间", onInsertValue = "now()")
-    private LocalDateTime createTime;
-
-    @RelationTable(column = "dep_id", relationColumn = "id")
-    private Dept dept;
-
-    public static DepUser def() {
-        DepUser depUser = new DepUser();
-        depUser.setManager(false);
-        return depUser;
-    }
-}
-```
-
-例如
-```java
-depUserService.selectAll();
-```
-执行如下：
-
-1. 查询sys_dep_user表 
-```sql
-select * from sys_dep_user;
-```
-
-2. 封装到List < DepUser > list;
-3. 获取list内dep_id字段到 List < Long > depIdList;
-4. 再执行
-```sql
-select * from sys_dep where id in (depIdList);
-```
-5. 最后根据映射关系，批量将查询结果封装到list内dept字段
-
-这样每次关联查询只执行一次sql
-
-
-## @Association
-
-@Association 注解用于将查询到的结果封装到对象，包含以下属性：
-
-这个注解对应mybatis xml的resultMap内的association。只是将查询结果封装，并不会嵌套查询
-
-```java
 /**
- * 查询结果映射到对象
- * 默认会自动映射对象，但是如果对象与前缀不一致的时候，可以通过该注解指定前缀
- * @author hzl
- * @since 2023/5/18
+ * 外键注解。
+ *
+ * @author ic-framework
+ * @since 2024/06/09
  */
 @Inherited
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD})
-public @interface Association {
+public @interface ForeignKey {
+
     /**
-     * 需要封装到这个对象的前缀,不填则用字段名作为前缀
+     * 外键名称。
+     *
+     * @return 外键名称
      */
-    String prefix() default "";
+    String name() default "";
+
+    /**
+     * 关联表。
+     *
+     * @return 关联表类型
+     */
+    Class<?> references();
+
+    /**
+     * 关联字段。
+     *
+     * @return 关联字段名
+     */
+    String referencesColumn() default "";
+
+    /**
+     * 删除时的操作。
+     *
+     * @return 删除操作类型
+     */
+    String onDelete() default ForeignKeyAction.NONE;
+
+    /**
+     * 更新时的操作。
+     *
+     * @return 更新操作类型
+     */
+    String onUpdate() default ForeignKeyAction.NONE;
 }
 ```
 
-## @Collection
 
-@Collection 注解用于将查询到的结果封装到对象列表，包含以下属性：
-
-这个注解对应mybatis xml的resultMap内的collection。只是将查询结果封装，并不会嵌套查询
-
-```java
-/**
- * 查询结果映射到列表
- * @author hzl
- * @since 2023/5/18
- */
-@Inherited
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD})
-public @interface Collection {
-    /**
-     * 需要封装到这个列表的前缀，不指定的话用的是字段名
-     */
-    String prefix() default "";
-    /**
-     * 需要指定主表主键字段，用于分组至改列表
-     */
-    String groupMainId();
-}
-```

@@ -69,11 +69,13 @@ public class InsertAfterColumnsWrapper extends SqlWrapper {
             Method method = null;
             try {
                 method = aClass.getMethod("get" + StringUtils.capitalize(column));
-            } catch (NoSuchMethodException ignored) {}
+            } catch (NoSuchMethodException ignored) {
+            }
             if (method == null) {
                 try {
                     method = aClass.getMethod("is" + StringUtils.capitalize(column));
-                } catch (NoSuchMethodException ignored) {}
+                } catch (NoSuchMethodException ignored) {
+                }
             }
             if (method == null) {
                 continue;
@@ -84,6 +86,15 @@ public class InsertAfterColumnsWrapper extends SqlWrapper {
             } catch (IllegalAccessException | InvocationTargetException ignored) {
                 vs.add("null");
             }
+        }
+        sqlWrapper.valuesList.add(vs);
+        return this;
+    }
+
+    public InsertAfterColumnsWrapper VALUES(Object... vals) {
+        List<String> vs = new ArrayList<>();
+        for (Object val : vals) {
+            vs.add(sqlWrapper.putParamSync(val));
         }
         sqlWrapper.valuesList.add(vs);
         return this;

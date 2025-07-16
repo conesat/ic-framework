@@ -15,37 +15,6 @@ Api.API_MANAGE 是系统推荐的接口前缀，表明该接口为管理员接�
 ```java
 package cn.icframework.system.module.dep.api;
 
-import cn.icframework.common.annotation.auth.RequireAuth;
-import consts.cn.icframework.common.Api;
-import consts.cn.icframework.common.RequestValue;
-import api.basic.cn.icframework.core.BasicApi;
-import bean.common.cn.icframework.core.PageRequest;
-import bean.common.cn.icframework.core.PageResponse;
-import bean.common.cn.icframework.core.Response;
-import wrapper.cn.icframework.mybatis.SqlWrapper;
-import cn.icframework.system.consts.UserType;
-import cn.icframework.system.module.dep.pojo.dto.DeptDTO;
-import cn.icframework.system.module.dep.pojo.vo.DeptVO;
-import cn.icframework.system.module.dep.pojo.vo.DeptVOConverter;
-import cn.icframework.system.module.dep.service.DeptService;
-import cn.icframework.system.module.dep.wrapperbuilder.DeptWrapperBuilder;
-import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 /**
  * @author create by ic gen
  * @since 2023/06/21

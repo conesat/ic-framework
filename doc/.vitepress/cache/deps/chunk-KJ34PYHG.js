@@ -746,6 +746,7 @@ var Link = class {
   }
 };
 var Dep = class {
+  // TODO isolatedDeclarations "__v_skip"
   constructor(computed3) {
     this.computed = computed3;
     this.version = 0;

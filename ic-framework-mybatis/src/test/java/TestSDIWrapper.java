@@ -42,7 +42,7 @@ public class TestSDIWrapper {
     @Test
     public void testNormal() {
         UserDef table = UserDef.table();
-        SqlWrapper sqlWrapper = SELECT_DISTINCT(1)
+        SqlWrapper sqlWrapper = SELECT(table)
                 .FROM(table)
                 .WHERE(table.name.like("123"));
         Map<String, Object> params = sqlWrapper.getParams();
@@ -100,11 +100,10 @@ public class TestSDIWrapper {
 
     @Test
     public void testInsert() {
-        UserDef table = UserDef.table();
         SqlWrapper where = INSERT()
                 .INTO(User.class)
                 .COLUMNS(User::getName, User::getDel, User::getId)
-                .VALUES(User.def());
+                .VALUES("2", "2");
         Map<String, Object> params = where.getParams();
         String sql = where.sql();
         System.out.println(sql);
