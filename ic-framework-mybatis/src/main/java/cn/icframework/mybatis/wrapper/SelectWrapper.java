@@ -15,6 +15,7 @@ public class SelectWrapper {
             sqlWrapper.select((Object[]) queryTables);
         }
     }
+
     public SelectWrapper(boolean distinct, Object... normalSelects) {
         if (distinct) {
             sqlWrapper.selectDistinct(normalSelects);
@@ -86,7 +87,18 @@ public class SelectWrapper {
     }
 
     /**
+     * 将查询转为子查询
+     *
+     * @param as 别名
+     * @return SqlWrapper
+     */
+    public SqlWrapper AS(String as) {
+        return this.sqlWrapper.AS(as);
+    }
+
+    /**
      * 获取sql
+     *
      * @return
      */
     public String sql() {

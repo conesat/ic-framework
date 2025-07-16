@@ -506,6 +506,16 @@ public class FunctionWrapper {
     }
 
     /**
+     * 去重
+     *
+     * @param queryField
+     * @return
+     */
+    public static QueryField<?> DISTINCT(@NonNull QueryField<?> queryField) {
+        return provider.distinct(queryField.getNameWithTable());
+    }
+
+    /**
      * 聚合拼接
      */
     public static class GroupConcat {

@@ -46,4 +46,6 @@ public interface SqlFunctionProvider {
     QueryField<?> anyValue(String field);
 
     QueryField<?> concat(Object... vals);
+
+    QueryField<?> distinct(String field);
 }

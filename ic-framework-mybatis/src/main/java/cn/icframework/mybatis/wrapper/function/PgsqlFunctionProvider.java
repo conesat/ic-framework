@@ -128,4 +128,11 @@ public class PgsqlFunctionProvider implements SqlFunctionProvider {
         queryField.setFunc(sb.toString());
         return queryField;
     }
+
+    @Override
+    public QueryField<?> distinct(String field) {
+        QueryField<?> queryField = new QueryField<>();
+        queryField.setFunc(String.format("DISTINCT %s", field));
+        return queryField;
+    }
 } 

@@ -127,4 +127,12 @@ public class MysqlFunctionProvider implements SqlFunctionProvider {
         queryField.setFunc("CONCAT(" + String.join(",", concatList) + ")");
         return queryField;
     }
+
+    @Override
+    public QueryField<?> distinct(String field) {
+        QueryField<?> queryField = new QueryField<>();
+        queryField.setFunc(String.format("DISTINCT %s", field));
+        queryField.setAsName(field);
+        return queryField;
+    }
 } 

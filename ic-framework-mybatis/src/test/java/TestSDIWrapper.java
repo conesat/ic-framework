@@ -9,6 +9,7 @@ import java.lang.reflect.Field;
 import java.util.Map;
 
 import static cn.icframework.mybatis.query.Checks.CHECK;
+import static cn.icframework.mybatis.wrapper.FunctionWrapper.DISTINCT;
 import static cn.icframework.mybatis.wrapper.FunctionWrapper.EXISTS;
 import static cn.icframework.mybatis.wrapper.Wrapper.*;
 
@@ -53,7 +54,8 @@ public class TestSDIWrapper {
     @Test
     public void testSqlIn() {
         UserDef table = UserDef.table();
-        SqlWrapper sqlWrapper = SELECT_DISTINCT(1)
+        UserDef table2 = UserDef.table();
+        SqlWrapper sqlWrapper = SELECT(DISTINCT(table.id).as("w"), table.name, SELECT(table2.name).FROM(table2).WHERE(table2.name.eq(table.name)).AS("name2"))
                 .FROM(table)
                 .WHERE(table.name.in(SELECT(table.name).FROM(table).WHERE(table.name.eq("2").id.eq("3"))).or().name.like("2"));
         Map<String, Object> params = sqlWrapper.getParams();
@@ -80,7 +82,7 @@ public class TestSDIWrapper {
     }
 
     @Test
-    public void testInsert() {
+    public void testInsertSelect() {
         UserDef table = UserDef.table();
         SqlWrapper where = INSERT()
                 .INTO(User.class)
@@ -90,6 +92,19 @@ public class TestSDIWrapper {
                                 .FROM(table)
                                 .WHERE(table.name.eq("123"))
                 );
+        Map<String, Object> params = where.getParams();
+        String sql = where.sql();
+        System.out.println(sql);
+        System.out.println(params.toString());
+    }
+
+    @Test
+    public void testInsert() {
+        UserDef table = UserDef.table();
+        SqlWrapper where = INSERT()
+                .INTO(User.class)
+                .COLUMNS(User::getName, User::getDel, User::getId)
+                .VALUES(User.def());
         Map<String, Object> params = where.getParams();
         String sql = where.sql();
         System.out.println(sql);

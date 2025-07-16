@@ -236,6 +236,32 @@ public class SqlWrapper implements Serializable {
     }
 
     /**
+     * 获取表属性中的排序
+     *
+     * @param sqlWrappers 表条件参数
+     * @return SqlWrapper
+     */
+    public SqlWrapper ORDER_BY(SqlWrapper... sqlWrappers) {
+        for (SqlWrapper sqlWrapper : sqlWrappers) {
+            orderBy.add(getAndMixSql(sqlWrapper));
+        }
+        return this;
+    }
+
+    /**
+     * 获取表属性中的排序
+     *
+     * @param sqlWrappers 表条件参数
+     * @return SqlWrapper
+     */
+    public SqlWrapper ORDER_BY(SelectWrapper... sqlWrappers) {
+        for (SelectWrapper sqlWrapper : sqlWrappers) {
+            orderBy.add(getAndMixSql(sqlWrapper.sqlWrapper));
+        }
+        return this;
+    }
+
+    /**
      * 正序排序
      *
      * @param queryFields 表条件参数

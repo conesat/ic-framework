@@ -5,8 +5,6 @@
 [![Maven](https://img.shields.io/badge/Maven-3.11.0-blue.svg)](https://maven.apache.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> IC Framework - 集成开发框架，Java开发脚手架
-
 ## 📖 项目介绍
 
 IC Framework 是一个Java开发框架，基于Spring Boot 3.5.3构建，提供了一套完整的开发脚手架。框架集成了认证授权、数据访问、代码生成、缓存管理等核心功能，旨在提高开发效率，规范代码结构。
@@ -16,7 +14,22 @@ IC Framework 是一个Java开发框架，基于Spring Boot 3.5.3构建，提供�
 搭建项目请移步[ic-framework-service](http://github.com/conesat/ic-framework-service) [ic-framework-service是使用ic framework集成鉴权、组织机构等基础功能的项目]
 
 ### ✋🏻 前言
-佛系作者，开源纯属个人爱好，可以不爱请别伤害
+作者开发 <span style="color:#e74c3c">【短线客：一个ai股票分析k线策略训练模拟器，欢迎各位扫码体验】</span> app前期需要开发后台，
+试过热门项目[若依](https://gitee.com/y_project/RuoYi/tree/master)，若依上手简单做的也很好，但是页面与java风格不太习惯，于是决定手搓一个，这就有了框架主体。
+
+到选orm又犯难了，试过老牌[MybatisPlus](https://baomidou.com/)，和新势力[MybatisFlex](https://mybatis-flex.com/)。
+两个都很不错，个人更倾向MyBatisFlex，但是复杂的sql还是需要写xml，作者灵光一闪决定参考MybatisFlex再手搓一个mybatis增强工具，就想再复杂的sql也要不写xml。
+
+如今短线客上架AppStore已经很久了，框架个人感觉还行，就决定开源出来供各位看官老爷赏乐。
+
+<img src="/doc/public/imgs/dxk.png" width="400"  alt="短线客">
+
+集成框架请移步[giteee](https://gitee.com/ic-framework/ic-framework/) [github](http://github.com/conesat/ic-framework-service)，预览图：
+
+<div style="display: flex;">
+<img src="/doc/public/imgs/project1.png" height="400" alt="ic-framework-service">
+<img style="margin-left: 20px" src="/doc/public/imgs/project2.png" height="400" alt="ic-framework-service">
+</div>
 
 ### 🎯 设计理念
 
@@ -27,17 +40,17 @@ IC Framework 是一个Java开发框架，基于Spring Boot 3.5.3构建，提供�
 
 ## ✨ 主要特性
 
+### 🗄️ Mybatis增强
+- 基于MyBatis的增强查询构建器
+- 支持复杂SQL查询的链式调用
+- 自动分页和排序
+- 数据库连接池优化
+
 ### 🔐 认证授权
 - JWT Token认证
 - 基于角色的权限控制(RBAC)
 - 自动权限初始化
 - 跨域配置支持
-
-### 🗄️ 数据访问
-- 基于MyBatis的增强查询构建器
-- 支持复杂SQL查询的链式调用
-- 自动分页和排序
-- 数据库连接池优化
 
 ### 🛠️ 代码生成
 - 自动生成CRUD代码
@@ -216,29 +229,115 @@ ic:
 
 ## 📚 使用示例
 
-### MyBatis查询示例
+### IcMyBatis示例
+#### 查询，这里只展示复杂条件查询，各种join各种嵌套可以自己摸索或者待文档完善
+```java
+// 多条件,select里面不写或者写table._all就是查询所有字段
+UserDef table = UserDef.table();
+SqlWrapper sqlWrapper = SELECT(table.name)
+        .FROM(table)
+        .WHERE(
+                table.name.in(
+                        SELECT(table.name).FROM(table).WHERE(table.name.eq("2").id.eq("3"))
+                ).or().name.like("2")
+        );
+
+// 还可以这么写
+SqlWrapper sqlWrapper = SELECT(table.name)
+        .FROM(table)
+        .WHERE(
+                table.name.in(
+                        SELECT(table.name).FROM(table).WHERE(table.name.eq("2").id.eq("3"))
+                )
+        ).OR(table.name.like("2"));
+
+// 还可以这么写
+SqlWrapper sqlWrapper = SELECT(table.name)
+        .FROM(table)
+        .WHERE(
+                table.name.in(
+                        SELECT(table.name).FROM(table).WHERE(table.name.eq("2").id.eq("3"))
+                ), OR(), table.name.like("2")
+        );
+
+// 去重，不指定条件就是按所有字段去重
+SqlWrapper sqlWrapper = SELECT_DISTINCT(table.name)
+        .FROM(table)
+        .WHERE(
+                table.name.in(
+                        SELECT(table.name).FROM(table).WHERE(table.name.eq("2").id.eq("3"))
+                ).or().name.like("2")
+        );
+
+// 指定字段去重
+SqlWrapper sqlWrapper = SELECT(DISTINCT(table.id), table.name)
+        .FROM(table)
+        .WHERE(
+                table.name.in(
+                        SELECT(table.name).FROM(table).WHERE(table.name.eq("2").id.eq("3"))
+                ).or().name.like("2")
+        );
+
+// 排序
+SqlWrapper sqlWrapper = SELECT(table.name)
+        .FROM(table)
+        .WHERE(
+                table.name.in(
+                        SELECT(table.name).FROM(table).WHERE(table.name.eq("2").id.eq("3"))
+                ).or().name.like("2")
+        )
+        .ORDER_BY(
+                SELECT(table.id).FROM(table).WHERE(table.name.eq("2"))
+        )
+        .ORDER_BY(table.name.asc().id.desc())
+        .ORDER_BY_ASC(table.name);
+
+// 子查询
+UserDef table2 = UserDef.table();
+SqlWrapper sqlWrapper = SELECT(table.name, SELECT(table2.name).FROM(table2).WHERE(table2.name.eq(table.name)).AS("name2"))
+        .FROM(table)
+        .WHERE(
+                table.name.in(
+                        SELECT(table.name).FROM(table).WHERE(table.name.eq("2").id.eq("3"))
+                ).or().name.like("2")
+        );
+```
+
+
+#### 插入
 
 ```java
-// 基础查询
-UserDef userDef = UserDef.table();
-List<User> users = SELECT(userDef.all())
-    .FROM(userDef)
-    .WHERE(userDef.status.eq(Status.ENABLE))
-    .list();
+// 基础
+User user = new User();
+user.setName("张三");
+userService.insert(user);
 
-// 复杂查询
-UserDef userDef = UserDef.table();
-UserRoleDef userRoleDef = UserRoleDef.table();
+// 批量插入
+List<User> userList = new ArrayList<>();
+userList.add(user);
+userService.insertBatch(user);
 
-List<UserVO> userList = SELECT(
-    userDef.name, 
-    userRoleDef.name.as("userRoleName")
-)
-.FROM(userDef)
-.LEFT_JOIN(userRoleDef)
-.ON(userDef.id.eq(userRoleDef.userId))
-.WHERE(userDef.name.like("ic"))
-.list();
+// 批量插入如果不需要捕获异常，可以使用skipError，会用虚拟线程分批入库，大幅度提升性能
+List<User> userList = new ArrayList<>();
+userList.add(user);
+userService.insertBatch(user, true);
+
+// into select
+UserDef table = UserDef.table();
+SqlWrapper insert = INSERT()
+        .INTO(User.class)
+        .COLUMNS(User::getName, User::getDel, User::getId)
+        .VALUES(
+                SELECT(AS(1, User::getName), AS(1, User::getDel), table.id)
+                .FROM(table)
+                .WHERE(table.name.eq("123"))
+        );
+userService.insert(insert);
+// 得到以下sql
+// INSERT INTO user (name, del, id)
+// SELECT 1 AS `name`, 1 AS `del`, user.id
+// FROM user WHERE (user.name = #{params.p_0})
+
 ```
 
 ### 权限控制示例
