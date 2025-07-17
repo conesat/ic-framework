@@ -8,13 +8,13 @@ hero:
   tagline: 集成开发框架-快速构建完整项目。内置flutter、uniapp、tdesign前端集成示例
   actions:
     - theme: brand
-      text: 🚀 快速上手
-      link: /docs/base/ic-config
+      text: 🚀 开始了解
+      link: /docs/introduction/about-ic
     - theme: alt
       text: 📦 模块总览
       link: /docs/introduction/structure
     - theme: alt
-      text: 🔗 后台预览
+      text: 🔗 后台预览 test/Aa123456
       link: http://hotel.chinahg.top
   image:
     src: /imgs/logo.png

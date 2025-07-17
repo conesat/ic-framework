@@ -35,9 +35,9 @@ export default defineConfig({
                 ]
             },
             {
-                text: 'IC-Mybatis详细使用',
+                text: 'IC-Mybatis',
                 items: [
-                    {text: '配置', link: '/docs/ic-mybatis/ic-mybatis'},
+                    {text: '开始', link: '/docs/ic-mybatis/ic-mybatis'},
                     {text: '基础查询', link: '/docs/ic-mybatis/query'},
                     {text: '复杂查询', link: '/docs/ic-mybatis/query-dif'},
                     {text: '结果映射', link: '/docs/ic-mybatis/query-as'},
