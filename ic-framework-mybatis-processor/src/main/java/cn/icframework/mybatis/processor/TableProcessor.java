@@ -273,15 +273,14 @@ public class TableProcessor extends AbstractProcessor {
         StringBuilder defContentBuilder = new StringBuilder();
         Set<String> processedFields = new HashSet<>();
         TypeElement classElement = (TypeElement) entityClassElement;
+        Table table = classElement.getAnnotation(Table.class);
         // 递归处理类的继承层次
         do {
-            Table table = classElement.getAnnotation(Table.class);
             for (Element enclosedElement : classElement.getEnclosedElements()) {
                 if (enclosedElement.getKind() == ElementKind.FIELD) {
                     processField(table, enclosedElement, classInfo, defContentBuilder, processedFields);
                 }
             }
-
             // 处理父类
             TypeMirror superclass = classElement.getSuperclass();
             if (Objects.equals(superclass.toString(), Object.class.getName())) {
@@ -323,10 +322,8 @@ public class TableProcessor extends AbstractProcessor {
         if (id == null && tableField == null) {
             return;
         }
-
         // 标记字段已处理
         processedFields.add(fieldName);
-
         // 生成字段定义
         String columnName = ModelClassUtils.getColumnName(table, tableField, fieldName);
         String fieldDefinition = String.format(

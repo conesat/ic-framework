@@ -42,15 +42,6 @@ public interface Temp {
                 */
                 @TableField(value = "update_time", comment = "更新时间", onUpdateValue = "now()")
                 private LocalDateTime updateTime;
-    
-                /**
-                * 一般创建对象通过这个方法
-                * 可以统一为对象赋初始值
-                */
-                public static #CLASS_NAME def() {
-                    #CLASS_NAME def = new #CLASS_NAME();
-                    return def;
-                }
             }
             """;
 }

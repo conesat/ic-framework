@@ -22,48 +22,47 @@ public class BasicRole {
      * 角色ID，主键。
      */
     @Id(idType = IdType.SNOWFLAKE)
-    @TableField
     private Long id;
 
     /**
      * 角色标识。
      */
-    @TableField(value = "sign", notNull = true, comment = "标识")
+    @TableField(notNull = true, comment = "标识")
     private String sign;
 
     /**
      * 用户类型。
      */
-    @TableField(value = "user_type", notNull = true, comment = "用户类型")
+    @TableField(notNull = true, comment = "用户类型")
     private String userType;
 
     /**
      * 角色名称。
      */
-    @TableField(value = "name", notNull = true, comment = "名称")
+    @TableField(notNull = true, comment = "名称")
     private String name;
 
     /**
      * 角色状态。
      */
-    @TableField(value = "status", notNull = true, comment = "状态")
+    @TableField(defaultValue = "1", notNull = true, comment = "状态")
     private Status status;
 
     /**
      * 是否为系统内置角色。
      */
-    @TableField(value = "system", notNull = true, comment = "是否系统")
+    @TableField(defaultValue = "false", notNull = true, comment = "是否系统")
     private boolean system;
 
     /**
      * 是否为超级管理员角色。
      */
-    @TableField(value = "su", notNull = true, comment = "是否超管角色")
+    @TableField(defaultValue = "false", notNull = true, comment = "是否超管角色")
     private boolean su;
 
     /**
      * 创建时间。
      */
-    @TableField(value = "create_time", notNull = true, comment = "创建时间", onInsertValue = "now()")
+    @TableField(notNull = true, comment = "创建时间", onInsertValue = "now()")
     private LocalDateTime createTime;
 }

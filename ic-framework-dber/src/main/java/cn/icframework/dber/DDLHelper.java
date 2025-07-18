@@ -94,7 +94,7 @@ public class DDLHelper {
     /**
      * 执行ddl
      *
-     * @param entityType
+     * @param entityType 实体类
      */
     public void runDDL(Class<?> entityType) throws SQLException {
         if (conn == null) {
@@ -129,10 +129,9 @@ public class DDLHelper {
     /**
      * 创建表
      *
-     * @param entityType
-     * @param table
-     * @param statement
-     * @throws SQLException
+     * @param entityType 实体类
+     * @param table      表注解
+     * @param statement  语句
      */
     private void createTable(Class<?> entityType, Statement statement, Table table) throws SQLException {
         Index index = entityType.getDeclaredAnnotation(Index.class);
@@ -218,10 +217,9 @@ public class DDLHelper {
     /**
      * 更新表
      *
-     * @param entityType
-     * @param statement
-     * @param table
-     * @throws SQLException
+     * @param entityType 实体类
+     * @param statement  语句
+     * @param table      表注解
      */
     private void updateTable(Class<?> entityType, Statement statement, Table table) throws SQLException {
         updateTableColumn(statement, entityType, table);
@@ -232,10 +230,9 @@ public class DDLHelper {
     /**
      * 更新表外键
      *
-     * @param statement
-     * @param entityType
-     * @param table
-     * @throws SQLException
+     * @param entityType 实体类
+     * @param statement  语句
+     * @param table      表注解
      */
     private Set<String> updateTableForeignKey(Statement statement, Class<?> entityType, Table table) throws SQLException {
         // 创建外键
@@ -286,8 +283,7 @@ public class DDLHelper {
     /**
      * 更新表索引
      *
-     * @param statement
-     * @throws SQLException
+     * @param statement statement
      */
     private void updateTableIndex(Statement statement, Class<?> entityType, Table table, Set<String> fkNameSet) throws SQLException {
         Index index = entityType.getDeclaredAnnotation(Index.class);

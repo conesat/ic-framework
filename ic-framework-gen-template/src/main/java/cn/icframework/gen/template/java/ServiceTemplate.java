@@ -32,7 +32,7 @@ public class ServiceTemplate {
                  */
                 @Transactional
                 public void edit(#MODEL_NAME_FIST_UPDTO dto) {
-                    #MODEL_NAME_FIST_UP entity = dto.getId() != null ? selectById(dto.getId()) : #MODEL_NAME_FIST_UP.def();
+                    #MODEL_NAME_FIST_UP entity = dto.getId() != null ? selectById(dto.getId()) : new #MODEL_NAME_FIST_UP();
                     BeanUtils.copyExcludeProps(dto, entity);
                     if (#ID_EMPTY) {
                         updateById(entity);

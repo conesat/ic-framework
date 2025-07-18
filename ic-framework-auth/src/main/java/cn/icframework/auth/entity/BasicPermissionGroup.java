@@ -20,18 +20,17 @@ public class BasicPermissionGroup {
      * 分组ID，主键。
      */
     @Id(idType = IdType.SNOWFLAKE)
-    @TableField(value = "id", notNull = true, comment = "id")
     private Long id;
 
     /**
      * 分组路径。
      */
-    @TableField(value = "path", notNull = true, comment = "路径")
+    @TableField(notNull = true, comment = "路径")
     private String path;
 
     /**
      * 分组名称。
      */
-    @TableField(value = "name", notNull = true, comment = "名称")
+    @TableField(notNull = true, comment = "名称")
     private String name;
 }
