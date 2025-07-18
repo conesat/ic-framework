@@ -15,15 +15,11 @@ IC Framework 是一个Java开发框架，基于Spring Boot 3.5.3构建，提供�
 
 ### ✋🏻 前言
 
-作者开发 <span style="color:#e74c3c">【短线客：一个ai股票分析k线策略训练模拟器，欢迎各位扫码体验】</span> app前期需要开发后台，
-试过热门项目[若依](https://gitee.com/y_project/RuoYi/tree/master)，若依上手简单做的也很好，但是页面与java风格不太习惯，于是决定手搓一个，这就有了框架主体。
+作者在开发某 AI 股票分析 K 线策略训练模拟器 App 的后台时，曾尝试过热门项目[若依](https://gitee.com/y_project/RuoYi/tree/master)。若依上手简单、功能完善，但页面与 Java 风格不太契合，因此决定自研一套框架，这便是 IC Framework 的由来。
 
-到选orm又犯难了，试过老牌[MybatisPlus](https://baomidou.com/)，和新势力[MybatisFlex](https://mybatis-flex.com/)。
-两个都很不错，个人更倾向MyBatisFlex，但是复杂的sql还是需要写xml，作者灵光一闪决定参考MybatisFlex再手搓一个mybatis增强工具，就想再复杂的sql也要不写xml。
+在选择 ORM 框架时，作者也尝试了[MybatisPlus](https://baomidou.com/)和[MybatisFlex](https://mybatis-flex.com/)，个人更倾向Flex，最终决定参考 MybatisFlex 自行实现一套 MyBatis 增强工具，目标是实现复杂 SQL 也无需编写 XML。
 
-如今短线客上架AppStore已经很久了，框架个人感觉还行，就决定开源出来供各位看官老爷赏乐。
-
-<img src="/doc/public/imgs/dxk.png" style="width: 400px;height: auto"  alt="短线客">
+目前该框架已在实际项目中稳定运行，现开源出来，欢迎大家参考和交流。
 
 集成框架请移步[giteee](https://gitee.com/ic-framework/ic-framework-service) [github](http://github.com/conesat/ic-framework-service)
 ，预览图：
@@ -541,9 +537,9 @@ public class CustomConfig {
 
 ## 📞 联系我们
 
-- 项目地址：[https://github.com/conesat/ic-framework](https://github.com/your-org/ic-framework)
+- 项目地址：[https://gitee.com/ic-framework/ic-framework](https://gitee.com/ic-framework/ic-framework)
 - 官方网站：[https://icframework.chinahg.top](https://icframework.chinahg.top)
-- 问题反馈：[Issues](https://github.com/conesat/ic-framework/issues)
+- 问题反馈：[Issues](https://gitee.com/ic-framework/ic-framework/issues)
 
 ---
 

@@ -67,7 +67,20 @@ features:
 
 ---
 
-<div style="text-align:center; margin-top:2em; color:#888; font-size:0.95em;">
-  <span>让开发者专注业务，基础设施交给框架！</span>
+<div class="ic-app-ad">
+  <div class="ic-app-text">
+    <h3>IcFramework开发的app</h3>
+    <div style="margin-top:30px">下载体验短线客App，AI智能炒股训练场！</div>
+    <br>
+    <button>
+    <a href="http://dxk.chinahg.top/" target="_blank" class="ic-app-btn">立即下载</a>
+    </button>
+  </div>
+  <img src="/imgs/dxk.png" alt="短线客App二维码" class="ic-app-qrcode">
 </div>
 
+<div class="ic-footer">
+  <span>让开发者专注业务，基础设施交给框架！</span>
+  <br/>
+  <a href="https://beian.miit.gov.cn/" target="_blank">桂ICP备17009456号-4</a>
+</div>

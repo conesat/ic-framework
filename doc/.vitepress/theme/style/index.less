@@ -36,17 +36,13 @@
 
 :root {
   --vp-home-hero-name-color: transparent;
-  --vp-home-hero-name-background: -webkit-linear-gradient(
-          120deg,
-          #bd34fe 30%,
-          #41d1ff
-  );
+  --vp-home-hero-name-background: -webkit-linear-gradient(120deg,
+      #bd34fe 30%,
+      #41d1ff);
 
-  --vp-home-hero-image-background-image: linear-gradient(
-          -45deg,
-          rgba(189, 52, 254, 0.58) 50%,
-          rgba(71, 202, 255, 0.48) 50%
-  );
+  --vp-home-hero-image-background-image: linear-gradient(-45deg,
+      rgba(189, 52, 254, 0.58) 50%,
+      rgba(71, 202, 255, 0.48) 50%);
   --vp-home-hero-image-filter: blur(40px);
 }
 
@@ -96,7 +92,7 @@
   over scoped class data attribute.
 */
 .dark .vp-doc a,
-.dark .vp-doc a > code,
+.dark .vp-doc a>code,
 .dark .VPNavBarMenuLink.VPNavBarMenuLink:hover,
 .dark .VPNavBarMenuLink.VPNavBarMenuLink.active,
 .dark .link.link:hover,
@@ -107,39 +103,49 @@
 }
 
 .dark .vp-doc a:hover,
-.dark .vp-doc a > code:hover {
+.dark .vp-doc a>code:hover {
   color: var(--vp-c-brand-lightest);
   opacity: 1;
 }
+
 .vp-doc a {
   font-weight: normal;
 }
+
 .vp-doc p {
   margin: 0;
 }
+
 /* Transition by color instead of opacity */
 .dark .vp-doc .custom-block a {
   transition: color 0.25s;
 }
+
 a:hover {
   text-decoration: none !important;
 }
+
 summary {
   font-weight: 600;
+
   &:hover {
     cursor: pointer;
     color: var(--vp-c-brand-lighter);
   }
 }
+
 svg {
   fill: var(--vp-c-text-1);
 }
+
 .VPNavBarTitle .title {
   transition: all 0.25s;
+
   &:hover {
     color: var(--vp-c-brand);
   }
 }
+
 .version-tag {
   font-size: 14px;
   line-height: 1.571;
@@ -159,9 +165,10 @@ svg {
   暗黑模式样式修改
 **/
 .dark {
-  --vp-sidebar-bg-color:#090a0f;
-  --vp-nav-bg-color:#090a0f;
-  .Layout{
+  --vp-sidebar-bg-color: #090a0f;
+  --vp-nav-bg-color: #090a0f;
+
+  .Layout {
     background: #111218;
   }
 }
@@ -189,4 +196,40 @@ svg {
 .custom-block.danger {
   /* border-color: #f43f5e; */
   border-color: var(--vp-c-red-2);
+}
+
+.ic-app-ad button a {
+  color: #fff !important;
+  text-decoration-line: none;
+}
+
+.ic-app-ad button {
+  padding: 10px 20px;
+  background-color: #3688ac;
+  border-radius: 10px;
+}
+
+.ic-app-ad .ic-app-text {
+  padding: 100px;
+  flex: 1;
+  text-align: center;
+}
+
+.ic-app-ad {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  color: #fff;
+  background: linear-gradient(0deg, #171e25, #0f161d);
+}
+
+.ic-app-qrcode {
+  max-width: 500px;
+}
+
+.ic-footer {
+  margin-top: 30px;
+  text-align: center;
 }
