@@ -29,11 +29,18 @@ export default defineConfig({
                 items: [
                     { text: '关于IC', link: '/docs/introduction/about-ic' },
                     { text: '项目结构', link: '/docs/introduction/structure' },
-                    { text: '集成框架', link: '/docs/introduction/project' },
                 ]
             },
             {
-                text: '文档',
+                text: '起步',
+                items: [
+                    { text: '集成平台', link: '/docs/start/project' },
+                    { text: '运行项目', link: '/docs/start/import' },
+                    { text: '中台页面', link: '/docs/start/project' },
+                ]
+            },
+            {
+                text: '基础',
                 items: [
                     { text: 'IC配置', link: '/docs/base/ic-config' },
                     { text: '角色权限初始化', link: '/docs/base/rp' },

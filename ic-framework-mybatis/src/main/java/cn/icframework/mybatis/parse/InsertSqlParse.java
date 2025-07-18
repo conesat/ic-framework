@@ -16,7 +16,6 @@ import java.util.List;
  * <p>
  * 该类实现了ISqlParse接口，主要负责根据实体对象生成单条和批量插入的SQL语句，
  * 支持自定义插入值、枚举类型处理等。
- * 
  */
 public class InsertSqlParse implements ISqlParse {
     /**
@@ -54,6 +53,10 @@ public class InsertSqlParse implements ISqlParse {
                 object = field.getField().get(entity);
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
+            }
+            if (object == null && tableField != null && StringUtils.hasLength(tableField.defaultValue())) {
+                values.add(String.valueOf(tableField.defaultValue()));
+                return true;
             }
             // 枚举类型特殊处理，取其code值
             if (IEnum.class.isAssignableFrom(field.getField().getType())) {

@@ -72,9 +72,11 @@ features:
     <h3>IcFramework开发的app</h3>
     <div style="margin-top:30px">下载体验短线客App，AI智能炒股训练场！</div>
     <br>
-    <button>
-    <a href="http://dxk.chinahg.top/" target="_blank" class="ic-app-btn">立即下载</a>
-    </button>
+    <a href="http://dxk.chinahg.top/" target="_blank" class="ic-app-btn">
+        <button>
+            立即下载
+        </button>
+    </a>
   </div>
   <img src="/imgs/dxk.png" alt="短线客App二维码" class="ic-app-qrcode">
 </div>
