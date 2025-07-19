@@ -11,7 +11,7 @@
     </parent>
     <artifactId>ic-framework-mybatis</artifactId>
     <packaging>jar</packaging>
-    <name>ic-framework-gen-mybatis</name>
+    <name>ic-framework-mybatis</name>
     <description>IC Framework - mybatis增强模板</description>
 
     <dependencies>

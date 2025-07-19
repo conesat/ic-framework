@@ -64,7 +64,7 @@ public interface BasicMapper<T> {
         }
         if (size == null) {
             // 默认批次大小为1000 如果小于1000分两次就好
-            size = entityList.size() > 1000 ? 1000 : entityList.size() / 2;
+            size = entityList.size() > 1000 ? 1000 : Math.max(entityList.size() / 2, 1);
         }
         if (size <= 0) {
             return 0;
@@ -95,7 +95,7 @@ public interface BasicMapper<T> {
         }
         if (size == null) {
             // 默认批次大小为1000 如果小于1000分两次就好
-            size = entityList.size() > 1000 ? 1000 : entityList.size() / 2;
+            size = entityList.size() > 1000 ? 1000 : Math.max(entityList.size() / 2, 1);
         }
         if (size <= 0) {
             return 0;

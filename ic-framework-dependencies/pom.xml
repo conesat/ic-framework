@@ -17,7 +17,7 @@
         <ic-framework-version>1.0.0</ic-framework-version>
         <spring-boot-version>3.5.3</spring-boot-version>
         <codec-version>1.18.0</codec-version>
-        <lang3-version>3.17.0</lang3-version>
+        <lang3-version>3.18.0</lang3-version>
         <spring-tx-version>7.0.0-M6</spring-tx-version>
         <jwt-version>4.5.0</jwt-version>
         <caffeine-version>3.2.1</caffeine-version>
