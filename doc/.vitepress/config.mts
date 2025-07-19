@@ -37,6 +37,7 @@ export default defineConfig({
                     { text: '运行项目', link: '/docs/start/import' },
                     { text: '后台设计', link: '/docs/start/java' },
                     { text: '中台设计', link: '/docs/start/vue' },
+                    { text: '代码生成', link: '/docs/start/code_gen' },
                 ]
             },
             {

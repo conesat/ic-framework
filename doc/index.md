@@ -73,7 +73,7 @@ features:
     <div style="margin-top:30px">下载体验短线客App，AI智能炒股训练场！</div>
     <br>
     <a href="http://dxk.chinahg.top/" target="_blank" class="ic-app-btn">
-        <button>
+        <button style="color: #fff">
             立即下载
         </button>
     </a>
