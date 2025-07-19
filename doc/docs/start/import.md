@@ -1,5 +1,9 @@
 # 导入项目
 
+## 简介
+ic-framework-service 是使用IcFramework开发的集成框架、包含鉴权、组织管理等基础功能。类似 [若依](https://gitee.com/y_project/RuoYi) 平台,
+接下来的教程我们从 ic-framework-project 的使用开始。
+
 ## 拉取代码
 
 默认是main分支。如果你想查看hotel代码，请切换hotel分支
@@ -152,7 +156,10 @@ VITE v5.4.19  ready in 3942 ms
 ## 激活系统
 ![](/public/imgs/init.png)
 >
-初始化需要秘钥：生成秘钥请在project项目system/test/CodeGen.java
->
-RLK2ihRbHkQlE99U3DIoQfEwlb8hR1Dz1K0icaFzIT0DXHJcZ7lw73VhyRNYmdZamcNjEx-lkTT4uc2DHxc6kvrB_Akb0DCmAk57xyCIhMbD75J94GpFp191I7HZ4U4YddHCLSpHDvYGmyGhGZnnMgQCmV1S8zY7QpV29GPA8YkLrAeW_5KlT5xPuJDNUibh_0Il>
-BSE7b5GWBNSyUg6xXbx-h0Bta-gicHatNV7toED7P0IVGlCyW3OVTEJY_Q-1cYBMb6v1WJn2D8B5pGcuHeMmmEuGSenzbMCWERU2SwStPVLiqJNRDRD9WDVPBH7LDx0hVQ7OntxvoMYCj5xxtQ 
+初始化需要秘钥
+>RLK2ihRbHkQlE99U3DIoQfEwlb8hR1Dz1K0icaFzIT0DXHJcZ7lw73VhyRNYmdZamcNjEx-lkTT4uc2DHxc6kvrB_Akb0DCmAk57xyCIhMbD75J94GpFp191I7HZ4U4YddHCLSpHDvYGmyGhGZnnMgQCmV1S8zY7QpV29GPA8YkLrAeW_5KlT5xPuJDNUibh_0Il>BSE7b5GWBNSyUg6xXbx-h0Bta-gicHatNV7toED7P0IVGlCyW3OVTEJY_Q-1cYBMb6v1WJn2D8B5pGcuHeMmmEuGSenzbMCWERU2SwStPVLiqJNRDRD9WDVPBH7LDx0hVQ7OntxvoMYCj5xxtQ
+
+>生成秘钥请在project项目system/test/CodeGen.java
+
+一切顺利的话，登录看到的页面是下面这样的：
+![](/public/imgs/index.png)

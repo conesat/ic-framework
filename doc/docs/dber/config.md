@@ -45,16 +45,16 @@ R适用于：
 
 例如：V1.0.0_add_user_nickname.sql R1.0.0_delete_user_name.sql
 ```
-src
-├─main
-│  ├─resources
-│     ├─sqls
-│        └─v1
-│            ├─V1.0.0_add_user_nickname.sql
-│            └─R1.0.0_delete_user_name.sql
-│        └─v1.0.1
-│            ├─V1.0.1_add_user_nickname.sql
-│            └─V1.0.1_add_user_nickname_2.sql
+📁src
+    📁main
+        📁resources
+            📁sqls
+                📁v1
+                    V1.0.0_add_user_nickname.sql
+                    R1.0.0_delete_user_name.sql
+                📁v1.0.1
+                    V1.0.1_add_user_nickname.sql
+                    V1.0.1_add_user_nickname_2.sql
 ```
 
 内容示例：

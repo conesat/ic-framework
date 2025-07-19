@@ -1,9 +1,11 @@
 
 # 注解DDL使用
-
+## 注解说明
 注解与IcMybatis是共用的，会自动创建表结构与索引、注释等
 
 如果字段没有 @TableField 或 @Id 是不会创建的
+
+
 ```java
 
 /**
@@ -47,3 +49,7 @@ public class User {
 }
 
 ```
+
+
+## 疑问 - 如何再次执行ddl
+每次ddl结束会记录md5存在根目录ddl_hash_cache.properties，只有实体结构变化才会再次执行对应实体ddl。删除这个ddl_hash_cache.properties文件也会再次检查实体ddl

@@ -34,9 +34,9 @@ export default defineConfig({
             {
                 text: '起步',
                 items: [
-                    { text: '集成平台', link: '/docs/start/project' },
                     { text: '运行项目', link: '/docs/start/import' },
-                    { text: '中台页面', link: '/docs/start/project' },
+                    { text: '后台设计', link: '/docs/start/java' },
+                    { text: '中台设计', link: '/docs/start/vue' },
                 ]
             },
             {
