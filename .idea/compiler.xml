@@ -9,7 +9,6 @@
         <outputRelativeToContentRoot value="true" />
         <module name="ic-framework-spring-boot-starter" />
         <module name="ic-framework-dber" />
-        <module name="ic-framework-test" />
         <module name="ic-framework-auth" />
         <module name="ic-framework-mybatis" />
         <module name="ic-framework-common" />
@@ -20,6 +19,9 @@
         <module name="ic-framework-core" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="ic-framework-test" target="21" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">

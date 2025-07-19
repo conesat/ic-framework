@@ -149,7 +149,7 @@ VITE v5.4.19  ready in 3942 ms
 ➜  press h + enter to show help
 ```
 
-## 运行起来以后需要初始化
+## 激活系统
 ![](/public/imgs/init.png)
 >
 初始化需要秘钥：生成秘钥请在project项目system/test/CodeGen.java

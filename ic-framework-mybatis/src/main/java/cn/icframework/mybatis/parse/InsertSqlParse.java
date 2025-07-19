@@ -54,20 +54,15 @@ public class InsertSqlParse implements ISqlParse {
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
-            if (object == null && tableField != null && StringUtils.hasLength(tableField.defaultValue())) {
-                values.add(String.valueOf(tableField.defaultValue()));
+            if (object == null) {
                 return true;
             }
             // 枚举类型特殊处理，取其code值
             if (IEnum.class.isAssignableFrom(field.getField().getType())) {
                 IEnum iEnum = (IEnum) object;
-                if (iEnum == null) {
-                    values.add(String.format("#{%s.%s}", IcParamsConsts.PARAMETER_ENTITY, field.getField().getName()));
-                } else {
-                    values.add(String.valueOf(iEnum.code()));
-                }
+                values.add(String.valueOf(iEnum.code()));
                 columns.add(fieldName);
-            } else if (object != null) {
+            } else {
                 columns.add(fieldName);
                 values.add(String.format("#{%s.%s}", IcParamsConsts.PARAMETER_ENTITY, field.getField().getName()));
             }
