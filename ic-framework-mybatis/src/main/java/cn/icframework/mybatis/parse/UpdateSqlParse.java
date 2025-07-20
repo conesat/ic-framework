@@ -1,6 +1,7 @@
 package cn.icframework.mybatis.parse;
 
 import cn.icframework.mybatis.annotation.Table;
+import cn.icframework.mybatis.annotation.Version;
 import cn.icframework.mybatis.consts.IcParamsConsts;
 import cn.icframework.mybatis.consts.StatementType;
 import cn.icframework.mybatis.utils.ModelClassUtils;

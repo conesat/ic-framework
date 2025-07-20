@@ -32,6 +32,14 @@ public class QueryTable<QT extends QueryTable<?>> {
     private String name;
     private Class<?> tableClass;
     /**
+     * 乐观锁字段
+     */
+    private Field versionField;
+    /**
+     * 逻辑删除字段
+     */
+    private Field logicDeleteField;
+    /**
      * 查询条件
      */
     private List<Condition> wheres = new ArrayList<>();
@@ -66,10 +74,11 @@ public class QueryTable<QT extends QueryTable<?>> {
         this.whereJoinType = type;
     }
 
-    @SuppressWarnings("unchecked")
     public QueryTable(Class<?> tableClass) {
         this.tableClass = tableClass;
         this.name = ModelClassUtils.getTableName(tableClass);
+        this.logicDeleteField = ModelClassUtils.getLogicDelete(tableClass);
+        this.versionField = ModelClassUtils.getVersion(tableClass);
     }
 
     @SuppressWarnings("unchecked")

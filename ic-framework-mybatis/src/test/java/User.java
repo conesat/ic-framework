@@ -1,11 +1,8 @@
-import cn.icframework.mybatis.annotation.Id;
-import cn.icframework.mybatis.annotation.Join;
-import cn.icframework.mybatis.annotation.Joins;
-import cn.icframework.mybatis.annotation.Table;
-import cn.icframework.mybatis.annotation.TableField;
+import cn.icframework.mybatis.annotation.*;
 import cn.icframework.mybatis.consts.IdType;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.java.Log;
 
 import java.util.List;
 
@@ -25,8 +22,11 @@ public class User {
     @TableField(value = "name", comment = "名称")
     private String name;
 
-    @TableField(value = "del", comment = "名称", isLogicDelete = true)
+    @LogicDelete
     private Boolean del;
+
+    @Version
+    private Long version;
 
 
     @Joins(joins = {

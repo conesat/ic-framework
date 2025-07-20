@@ -1,8 +1,6 @@
 package cn.icframework.mybatis.processor;
 
-import cn.icframework.mybatis.annotation.Id;
-import cn.icframework.mybatis.annotation.Table;
-import cn.icframework.mybatis.annotation.TableField;
+import cn.icframework.mybatis.annotation.*;
 import cn.icframework.mybatis.processor.gen.java.DefGenerator;
 import cn.icframework.mybatis.query.QueryField;
 import cn.icframework.mybatis.utils.ModelClassUtils;
@@ -16,8 +14,10 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
+import javax.tools.Diagnostic;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
@@ -314,12 +314,11 @@ public class TableProcessor extends AbstractProcessor {
         if (processedFields.contains(fieldName)) {
             return;
         }
-
-        // 检查字段是否有相关注解
+        Version version = fieldElement.getAnnotation(Version.class);
         TableField tableField = fieldElement.getAnnotation(TableField.class);
         Id id = fieldElement.getAnnotation(Id.class);
-
-        if (id == null && tableField == null) {
+        LogicDelete logicDelete = fieldElement.getAnnotation(LogicDelete.class);
+        if (id == null && tableField == null && version == null && logicDelete == null) {
             return;
         }
         // 标记字段已处理

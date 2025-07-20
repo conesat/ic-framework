@@ -21,5 +21,6 @@ public class UserDef extends QueryTable<UserDef> {
 
     public QueryField<UserDef> id= new QueryField<>(this, "id");
     public QueryField<UserDef> name= new QueryField<>(this, "name");
+    public QueryField<UserDef> version= new QueryField<>(this, "version");
 
 }

@@ -41,11 +41,6 @@ public @interface TableField {
     String comment() default "";
 
     /**
-     * 是否是逻辑删除字段
-     */
-    boolean isLogicDelete() default false;
-
-    /**
      * 是否禁止为空
      */
     boolean notNull() default false;

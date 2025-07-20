@@ -136,7 +136,7 @@ public class SDIWrapper {
      */
     protected static SqlWrapper DELETE_FROM(QueryTable<?> queryTable) {
         Table table = queryTable.getTableClass().getAnnotation(Table.class);
-        Field logicDeleteField = ModelClassUtils.getLogicDelete(queryTable.getTableClass());
+        Field logicDeleteField = queryTable.getLogicDeleteField();
         if (logicDeleteField != null) {
             UpdateWrapper updateWrapper = new UpdateWrapper(queryTable);
             updateWrapper.setLogicDel(ModelClassUtils.getTableColumnName(table, logicDeleteField));

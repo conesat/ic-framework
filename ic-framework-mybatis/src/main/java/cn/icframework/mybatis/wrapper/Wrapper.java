@@ -15,7 +15,6 @@ import cn.icframework.mybatis.utils.ModelClassUtils;
  * 该类只负责 SQL 片段的构造，不负责 SQL 的执行。
  * <br>
  * 复杂的 SQL 函数（如 MAX、MIN、COUNT、字符串处理等）请直接使用 FunctionWrapper。
- * 
  * <b>示例：</b>
  * <pre>
  *     // 构造 select 语句

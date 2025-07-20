@@ -16,14 +16,14 @@ public class VueSelectTemplate {
                       </template>
                     </t-input>
                   </t-row>
-                        
+            
                   <t-table
                     :data="data"
                     :columns="columns"
                     row-key="id"
                     vertical-align="top"
                     :hover="true"
-                    :pagination="queryForm"
+                    :pagination="pagination"
                     :selected-row-keys="selectedRowKeys"
                     :loading="dataLoading"
                     :header-affixed-top="headerAffixedTop"
@@ -46,30 +46,30 @@ public class VueSelectTemplate {
                 </t-card>
               </div>
             </template>
-                        
+            
             <script lang="ts">
             export default {
               name: '#MODEL_NAME_FIST_DOWNSelect',
             };
             </script>
-                        
+            
             <script setup lang="ts">
             import {SearchIcon} from 'tdesign-icons-vue-next';
             import {PrimaryTableCol} from 'tdesign-vue-next';
             import {computed, onMounted, ref} from 'vue';
-                        
+            
             import Api#MODEL_NAME_FIST_UP from '@/api#MODULE/Api#MODEL_NAME_FIST_UP';
             import {prefix} from '@/config/global';
             import {useSettingStore} from '@/store';
-            import query from "@/api/common/query";
-                        
+            import {queryDef, paginationDef} from "@/api/common/query";
+            
             const props = defineProps({
               mutilate: {
                 type: Boolean,
                 default: false
               }
             });
-                        
+            
             // 定义变量 start -------------------
             const emit = defineEmits(['selectSuccess', 'cancel']);
             // 读取设置内容
@@ -83,9 +83,11 @@ public class VueSelectTemplate {
             }]);
             // 列表数据
             const data = ref([]);
+            // 分页
+            const pagination = ref(paginationDef);
             // 查询表单,包括分页
             const queryForm = ref({
-               ...query,
+               ...queryDef,
             });
             // 数据是否加载中
             const dataLoading = ref(false);
@@ -99,20 +101,23 @@ public class VueSelectTemplate {
             #CONTENT
             ];
             // 定义变量 end -------------------
-                        
+            
             // 定义方法 start -------------------
             // 获取列表数据
             const getData = async (reload ?: boolean) => {
               if (reload) {
-                queryForm.value.current = 1;
-                data.value = [];
+                pagination.value.current = 1;
               }
               dataLoading.value = true;
-              Api#MODEL_NAME_FIST_UP.page(queryForm.value, (res: any) => {
-                data.value = [...data.value, ...res.data];
-                queryForm.value.total = res.total;
-                dataLoading.value = false;
-              });
+              Api#MODEL_NAME_FIST_UP.page({
+                data: queryForm.value,
+                pagination: pagination.value,
+                success: (res: any) => {
+                  data.value = res.records;
+                  pagination.value.total = res.total;
+                  dataLoading.value = false;
+                }
+             });
             };
             // 表单选中数据变化
             const reHandleSelectChange = (val: number[], e: any) => {
@@ -127,10 +132,7 @@ public class VueSelectTemplate {
             };
             // 表单参数变化 包括过滤、分页
             const reHandleChange = (changeParams: any, triggerAndData: unknown) => {
-              queryForm.value = {
-                ...queryForm.value,
-                ...changeParams.pagination
-              }
+              pagination.value = changeParams.pagination;
               getData();
             };
             // 取消选择
@@ -154,15 +156,15 @@ public class VueSelectTemplate {
               window.open(`#MODULE/#MODEL_SPLIT_NAME-edit?autoClose=true`);
             };
             // 定义方法 end -------------------
-                        
+            
             // vue生命周期
             onMounted(() => {
               getData();
             });
             </script>
-                        
+            
             <style lang="less" scoped>
-                        
+            
             </style>
             """;
 }

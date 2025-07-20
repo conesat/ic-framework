@@ -1,9 +1,7 @@
 package cn.icframework.mybatis.parse;
 
 import cn.icframework.common.interfaces.IEnum;
-import cn.icframework.mybatis.annotation.Id;
-import cn.icframework.mybatis.annotation.Table;
-import cn.icframework.mybatis.annotation.TableField;
+import cn.icframework.mybatis.annotation.*;
 import cn.icframework.mybatis.consts.IcParamsConsts;
 import cn.icframework.mybatis.consts.IdType;
 import cn.icframework.mybatis.utils.ModelClassUtils;
@@ -19,23 +17,22 @@ import java.lang.reflect.Type;
  * SqlParseUtils 工具类，提供 SQL 解析和生成相关的辅助方法。
  * <p>
  * 主要用于处理实体类与 SQL 语句之间的映射、字段校验、主键条件生成、更新语句片段处理等。
- * 
  */
 public class SqlParseUtils {
     /**
      * 校验字段是否可用于 SQL 生成。
      * <p>
      * 过滤掉主键自增、无注解等不应参与 SQL 生成的字段。
-     * 
      *
      * @param field TableFieldInfo 字段信息封装对象
      * @return 字段名（可用于 SQL），若不可用则返回 null
      */
-    public static String verifyField(Table table,TableFieldInfo field) {
-        String fieldName;
+    public static String verifyField(Table table, TableFieldInfo field) {
         TableField tableField = field.getTableField();
         Id id = field.getId();
-        if (tableField == null && id == null) {
+        Version version = field.getVersion();
+        LogicDelete logicDelete = field.getLogicDelete();
+        if (tableField == null && id == null && version == null && logicDelete == null) {
             return null;
         }
         if (id != null && id.idType() == IdType.AUTO) {
@@ -48,7 +45,6 @@ public class SqlParseUtils {
      * 获取 Mapper 泛型中的实体类型。
      * <p>
      * 递归查找 Mapper 接口的泛型参数，获取实体类的 Class 类型。
-     * 
      *
      * @param mapperClass Mapper 类对象
      * @return 实体类的 Class 类型，若未找到则返回 null
@@ -74,7 +70,6 @@ public class SqlParseUtils {
      * 构造主键 in (...) 的 where 条件 SQL 片段。
      * <p>
      * 用于批量操作时生成主键 in 集合的 SQL 片段，结合 MyBatis foreach 使用。
-     * 
      *
      * @param entityClass 实体类的 Class 类型
      * @return 主键 in (...) 的 SQL 片段字符串
@@ -98,7 +93,6 @@ public class SqlParseUtils {
      * <p>
      * 根据字段类型、注解、是否允许 null、是否为枚举等，自动生成 set 语句片段。
      * 支持 onUpdateValue、枚举类型、主键过滤、自定义参数等。
-     * 
      *
      * @param entity   实体对象
      * @param withNull 是否包含 null 值字段
@@ -111,6 +105,22 @@ public class SqlParseUtils {
         if (fieldName == null) {
             return;
         }
+
+        // 版本号校验
+        Version version = field.getVersion();
+        if (version != null) {
+            try {
+                Long val = (Long) field.getField().get(entity);
+                sql.SET_SOURCE_PARAM(fieldName, val != null && val < Long.MAX_VALUE ? fieldName + " + 1" : 1);
+                if (val != null) {
+                    sql.WHERE(field.getField().getName() + " = " + val);
+                }
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+            return;
+        }
+
         TableField tableField = field.getTableField();
         if (tableField != null && StringUtils.hasLength(tableField.onUpdateValue())) {
             sql.SET_SOURCE_PARAM(fieldName, tableField.onUpdateValue());

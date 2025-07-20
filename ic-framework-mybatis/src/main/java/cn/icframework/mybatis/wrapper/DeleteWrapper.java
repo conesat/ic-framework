@@ -15,7 +15,7 @@ public class DeleteWrapper {
      * @return
      */
     public SqlWrapper FROM(QueryTable<?> queryTable) {
-        Field logicDeleteField = ModelClassUtils.getLogicDelete(queryTable.getTableClass());
+        Field logicDeleteField = queryTable.getLogicDeleteField();
         if (logicDeleteField != null) {
             UpdateWrapper updateWrapper = new UpdateWrapper(queryTable);
             updateWrapper.setLogicDel(ModelClassUtils.getTableColumnName(logicDeleteField));

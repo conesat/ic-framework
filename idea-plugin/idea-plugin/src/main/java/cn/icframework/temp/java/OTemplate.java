@@ -45,7 +45,7 @@ public class OTemplate {
     public final static String DTO_CONVERT_TEMPLATE = """
             package #PACKAGE_NAME.pojo.vo;
                         
-            import pojo.basic.cn.icframework.core.BasicConverter;
+            import cn.icframework.core.basic.pojo.BasicConverter;
             import #PACKAGE_NAME.#MODEL_NAME_FIST_UP;
             import org.springframework.stereotype.Component;
                         

@@ -32,7 +32,7 @@ public class VueIndexTemplate {
                     row-key="id"
                     vertical-align="top"
                     :hover="true"
-                    :pagination="queryForm"
+                    :pagination="pagination"
                     :selected-row-keys="selectedRowKeys"
                     :loading="dataLoading"
                     :header-affixed-top="headerAffixedTop"
@@ -50,29 +50,29 @@ public class VueIndexTemplate {
                     </template>
                   </t-table>
                 </t-card>
-                        
+            
                 <t-dialog v-model:visible="confirmDeleteVisible" header="确认" :body="confirmDeleteBody"
                           @confirm="onConfirmDelete"/>
               </div>
             </template>
-                        
+            
             <script lang="ts">
             export default {
               name: '#MODEL_NAME_FIST_DOWNIndex',
             };
             </script>
-                        
+           
             <script setup lang="ts">
             import { SearchIcon } from 'tdesign-icons-vue-next';
             import { MessagePlugin, PrimaryTableCol } from 'tdesign-vue-next';
             import { computed, onMounted, ref } from 'vue';
             import { useRouter } from 'vue-router';
-                        
+            
             import Api#MODEL_NAME_FIST_UP from '@/api#MODULE/Api#MODEL_NAME_FIST_UP';
             import { prefix } from '@/config/global';
             import { useSettingStore } from '@/store';
-            import query from "@/api/common/query";
-                        
+            import {queryDef, paginationDef} from "@/api/common/query";
+            
             // 定义变量 start -------------------
             // 排序
             const sort = ref([{
@@ -85,9 +85,11 @@ public class VueIndexTemplate {
             const store = useSettingStore();
             // 列表数据
             const data = ref([]);
+            // 分页
+            const pagination = ref(paginationDef);
             // 查询表单,包括分页
             const queryForm = ref({
-               ...query,
+               ...queryDef,
             });
             // 数据是否加载中
             const dataLoading = ref(false);
@@ -112,7 +114,7 @@ public class VueIndexTemplate {
               },
             ];
             // 定义变量 end -------------------
-                        
+            
             // 定义方法 start -------------------
             // 排序变化
             const sortChange = (sortInfo: any) => {
@@ -123,18 +125,18 @@ public class VueIndexTemplate {
             // 获取列表数据
             const getData = async (reload ?: boolean) => {
               if (reload) {
-                queryForm.value.current = 1;
-                data.value = [];
+               pagination.value.current = 1;
               }
               dataLoading.value = true;
               Api#MODEL_NAME_FIST_UP.page({
-                  data: queryForm.value,
-                  success: (res: any) => {
-                      data.value = [...data.value, ...res.data];
-                      queryForm.value.total = res.total;
-                      dataLoading.value = false;
-                  }
-              });
+                data: queryForm.value,
+                pagination: pagination.value,
+                success: (res: any) => {
+                  data.value = res.records;
+                  pagination.value.total = res.total;
+                  dataLoading.value = false;
+                }
+             });
             };
             // 重置选中数据
             const resetIdx = () => {
@@ -177,10 +179,7 @@ public class VueIndexTemplate {
             };
             // 表单参数变化 包括过滤、分页
             const reHandleChange = (changeParams: any, triggerAndData: unknown) => {
-              queryForm.value = {
-                ...queryForm.value,
-                ...changeParams.pagination
-              }
+              pagination.value = changeParams.pagination;
               getData();
             };
             // 编辑/详情按钮事件
@@ -208,13 +207,13 @@ public class VueIndexTemplate {
                 } as any),
             );
             // 定义方法 end -------------------
-                        
+            
             // vue生命周期
             onMounted(() => {
               getData();
             });
             </script>
-                        
+            
             <style lang="less" scoped>
             </style>
             """;

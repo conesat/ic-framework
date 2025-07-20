@@ -1,4 +1,5 @@
 import cn.icframework.mybatis.annotation.Id;
+import cn.icframework.mybatis.annotation.LogicDelete;
 import cn.icframework.mybatis.annotation.Table;
 import cn.icframework.mybatis.annotation.TableField;
 import cn.icframework.mybatis.consts.IdType;
@@ -16,13 +17,12 @@ import lombok.Setter;
 public class Role {
 
     @Id(idType = IdType.AUTO)
-    @TableField
     private Long id;
 
     @TableField(value = "name", comment = "名称")
     private String name;
 
-    @TableField(value = "del", comment = "名称", isLogicDelete = true)
+    @LogicDelete
     private Boolean del;
 
 

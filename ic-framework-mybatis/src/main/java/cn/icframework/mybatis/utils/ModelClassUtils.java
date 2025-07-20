@@ -1,8 +1,6 @@
 package cn.icframework.mybatis.utils;
 
-import cn.icframework.mybatis.annotation.Id;
-import cn.icframework.mybatis.annotation.Table;
-import cn.icframework.mybatis.annotation.TableField;
+import cn.icframework.mybatis.annotation.*;
 import cn.icframework.mybatis.consts.IcParamsConsts;
 import cn.icframework.mybatis.parse.TableFieldInfo;
 import cn.icframework.mybatis.consts.CompareEnum;
@@ -340,8 +338,28 @@ public class ModelClassUtils {
         while (clazz != null) {
             Field[] declaredFields = clazz.getDeclaredFields();
             for (Field field : declaredFields) {
-                TableField tableField = field.getDeclaredAnnotation(TableField.class);
-                if (tableField != null && tableField.isLogicDelete()) {
+                LogicDelete tableField = field.getDeclaredAnnotation(LogicDelete.class);
+                if (tableField != null) {
+                    return field;
+                }
+            }
+            clazz = clazz.getSuperclass();
+        }
+        return null;
+    }
+
+    /**
+     * 获取乐观锁字段
+     *
+     * @param clazz
+     * @return
+     */
+    public static Field getVersion(Class<?> clazz) {
+        while (clazz != null) {
+            Field[] declaredFields = clazz.getDeclaredFields();
+            for (Field field : declaredFields) {
+                Version tableField = field.getDeclaredAnnotation(Version.class);
+                if (tableField != null) {
                     return field;
                 }
             }
@@ -366,14 +384,18 @@ public class ModelClassUtils {
                 }
                 TableField tableField = field.getDeclaredAnnotation(TableField.class);
                 Id id = field.getDeclaredAnnotation(Id.class);
-                if (tableField == null && id == null) {
+                Version version = field.getDeclaredAnnotation(Version.class);
+                LogicDelete logicDelete = field.getDeclaredAnnotation(LogicDelete.class);
+                if (tableField == null && id == null && version == null && logicDelete == null) {
                     continue;
                 }
                 TableFieldInfo tableFieldInfo = new TableFieldInfo();
                 tableFieldInfo.setTableColumnName(tableField == null || org.apache.commons.lang3.StringUtils.isEmpty(tableField.value()) ? field.getName() : tableField.value());
                 tableFieldInfo.setTableField(tableField);
                 tableFieldInfo.setId(id);
+                tableFieldInfo.setVersion(version);
                 tableFieldInfo.setField(field);
+                tableFieldInfo.setLogicDelete(logicDelete);
                 if (!callback.callBack(tableFieldInfo)) {
                     return;
                 }

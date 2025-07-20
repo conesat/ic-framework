@@ -4,12 +4,7 @@ import cn.icframework.common.interfaces.IEnum;
 import cn.icframework.core.common.helper.IndexResult;
 import cn.icframework.core.common.helper.TableColumn;
 import cn.icframework.core.utils.Assert;
-import cn.icframework.mybatis.annotation.ForeignKey;
-import cn.icframework.mybatis.annotation.ForeignKeyAction;
-import cn.icframework.mybatis.annotation.Id;
-import cn.icframework.mybatis.annotation.Index;
-import cn.icframework.mybatis.annotation.Table;
-import cn.icframework.mybatis.annotation.TableField;
+import cn.icframework.mybatis.annotation.*;
 import cn.icframework.mybatis.consts.IdType;
 import cn.icframework.mybatis.consts.MysqlType;
 import cn.icframework.mybatis.consts.MysqlTypeMap;
@@ -26,6 +21,8 @@ import org.springframework.context.annotation.Role;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import javax.lang.model.type.TypeKind;
+import javax.tools.Diagnostic;
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -378,7 +375,15 @@ public class DDLHelper {
             for (Field declaredField : declaredFields) {
                 TableField tableField = getTableField(declaredField, entityClass.getTypeName());
                 Id id = declaredField.getDeclaredAnnotation(Id.class);
-                if (tableField == null && id == null) {
+                Version version = declaredField.getDeclaredAnnotation(Version.class);
+                LogicDelete logicDelete = declaredField.getDeclaredAnnotation(LogicDelete.class);
+                if (version != null) {
+                    // 获取字段的类型
+                    Class<?> fieldType = declaredField.getType();
+                    Assert.isTrue(fieldType == Long.class || fieldType == long.class, entityClass.getSimpleName() + "." + fieldType.getName() + " @Version 字段必须是 Long 或 long 类型");
+                }
+
+                if (tableField == null && id == null && version == null && logicDelete == null) {
                     continue;
                 }
                 String fieldName = ModelClassUtils.getColumnName(table, tableField, declaredField.getName());
@@ -390,7 +395,7 @@ public class DDLHelper {
 
                 // 是否限制非空
                 boolean notNull = tableField != null && tableField.notNull();
-                String sql = getSql(tableField, id, fieldName, sqlType, notNull);
+                String sql = getSql(tableField, id, version, logicDelete, fieldName, sqlType, notNull);
                 fields.add(sql);
                 if (id != null) {
                     sqlKeys.add(fieldName);
@@ -407,9 +412,17 @@ public class DDLHelper {
     private static String getSql(
             TableField tableField,
             Id id,
+            Version version,
+            LogicDelete logicDelete,
             String fieldName,
             String sqlType,
             boolean notNull) {
+        if (logicDelete != null) {
+            return " `" + fieldName + "` " + sqlType + " NOT NULL DEFAULT 0 COMMENT 逻辑删除";
+        }
+        if (version != null) {
+            return " `" + fieldName + "` " + sqlType + " NOT NULL DEFAULT 1 COMMENT 乐观锁";
+        }
         String nullAble = notNull ? " NOT NULL " : " NULL ";
         String defaultValue = tableField != null && StringUtils.hasLength(tableField.defaultValue()) ? " DEFAULT " + tableField.defaultValue() + " " : "";
         String comment = tableField != null && StringUtils.hasLength(tableField.comment()) ? " COMMENT '" + tableField.comment() + "'" : "";
@@ -435,14 +448,21 @@ public class DDLHelper {
             for (Field declaredField : declaredFields) {
                 TableField tableField = getTableField(declaredField, entityClass.getTypeName());
                 Id id = declaredField.getDeclaredAnnotation(Id.class);
-                if (tableField == null && id == null) {
+                Version version = declaredField.getDeclaredAnnotation(Version.class);
+                LogicDelete logicDelete = declaredField.getDeclaredAnnotation(LogicDelete.class);
+                if (version != null) {
+                    // 获取字段的类型
+                    Class<?> fieldType = declaredField.getType();
+                    Assert.isTrue(fieldType == Long.class || fieldType == long.class, entityClass.getSimpleName() + "." + fieldType.getName() + " @Version 字段必须是 Long 或 long 类型");
+                }
+                if (tableField == null && id == null && version == null && logicDelete == null) {
                     continue;
                 }
                 // 是否限制非空
                 boolean notNull = (tableField != null && tableField.notNull()) || id != null;
                 String sqlType = getSqlType(declaredField, tableField);
                 String fieldName = ModelClassUtils.getColumnName(table, tableField, declaredField.getName());
-                String sql = getSql(tableField, id, fieldName, sqlType, notNull);
+                String sql = getSql(tableField, id, version, logicDelete, fieldName, sqlType, notNull);
                 if (existFields.containsKey(fieldName)) {
                     if (!existFields.get(fieldName).getType().startsWith(sqlType)
                             || existFields.get(fieldName).isNotNull() != notNull
@@ -488,7 +508,8 @@ public class DDLHelper {
     private static TableField getTableField(Field declaredField,
                                             String classTypeName) {
         TableField tableField = declaredField.getDeclaredAnnotation(TableField.class);
-        if (tableField != null && tableField.isLogicDelete()) {
+        LogicDelete logicDelete = declaredField.getDeclaredAnnotation(LogicDelete.class);
+        if (logicDelete != null) {
             Assert.isFalse(tableField.notNull() && !StringUtils.hasLength(tableField.defaultValue()), classTypeName + " 逻辑删除字段notNull时，默认 defaultValue 值必填");
 
             Assert.isTrue(declaredField.getType().isAssignableFrom(Boolean.class)

@@ -9,7 +9,7 @@ public class DaoTemplate {
     public final static String DAO_TEMPLATE = """
             package #PACKAGE_NAME.dao;
                         
-            import mapper.cn.icframework.mybatis.BasicMapper;
+            import cn.icframework.mybatis.mapper.BasicMapper;
             import #PACKAGE_NAME.#MODEL_NAME_FIST_UP;
             import org.apache.ibatis.annotations.Mapper;
                         

@@ -32,7 +32,7 @@ public class VueIndexTemplate {
                     row-key="id"
                     vertical-align="top"
                     :hover="true"
-                    :pagination="queryForm"
+                    :pagination="pagination"
                     :selected-row-keys="selectedRowKeys"
                     :loading="dataLoading"
                     :header-affixed-top="headerAffixedTop"
@@ -71,7 +71,7 @@ public class VueIndexTemplate {
             import Api#MODEL_NAME_FIST_UP from '@/api#MODULE/Api#MODEL_NAME_FIST_UP';
             import { prefix } from '@/config/global';
             import { useSettingStore } from '@/store';
-            import query from "@/api/common/query";
+            import {queryDef, paginationDef} from "@/api/common/query";
                         
             // 定义变量 start -------------------
             // 排序
@@ -85,9 +85,11 @@ public class VueIndexTemplate {
             const store = useSettingStore();
             // 列表数据
             const data = ref([]);
+            // 分页
+            const pagination = ref(paginationDef);
             // 查询表单,包括分页
             const queryForm = ref({
-               ...query,
+               ...queryDef,
             });
             // 数据是否加载中
             const dataLoading = ref(false);
@@ -117,16 +119,18 @@ public class VueIndexTemplate {
             // 获取列表数据
             const getData = async (reload ?: boolean) => {
               if (reload) {
-                queryForm.value.current = 1;
-                data.value = [];
+               pagination.value.current = 1;
               }
               dataLoading.value = true;
-              dataLoading.value = true;
-              Api#MODEL_NAME_FIST_UP.page(queryForm.value, (res: any) => {
-                data.value = [...data.value, ...res.data];
-                queryForm.value.total = res.total;
-                dataLoading.value = false;
-              });
+              Api#MODEL_NAME_FIST_UP.page({
+                data: queryForm.value,
+                pagination: pagination.value,
+                success: (res: any) => {
+                  data.value = res.records;
+                  pagination.value.total = res.total;
+                  dataLoading.value = false;
+                }
+             });
             };
             // 重置选中数据
             const resetIdx = () => {
@@ -169,10 +173,7 @@ public class VueIndexTemplate {
             };
             // 表单参数变化 包括过滤、分页
             const reHandleChange = (changeParams: any, triggerAndData: unknown) => {
-              queryForm.value = {
-                ...queryForm.value,
-                ...changeParams.pagination
-              }
+              pagination.value = changeParams.pagination;
               getData();
             };
             // 编辑/详情按钮事件

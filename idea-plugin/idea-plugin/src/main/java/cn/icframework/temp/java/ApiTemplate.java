@@ -9,9 +9,9 @@ public class ApiTemplate {
     public final static String API_TEMPLATE = """
             package #PACKAGE_NAME.api;
                         
-            import cn.icframework.annotation.auth.RequireAuth;
+            import cn.icframework.auth.annotation.RequireAuth;
             import cn.icframework.common.consts.Api;
-            import api.basic.cn.icframework.core.BasicApi;
+            import cn.icframework.core.basic.api.BasicApi;
             import cn.icframework.core.common.bean.PageRequest;
             import cn.icframework.core.common.bean.PageResponse;
             import cn.icframework.core.common.bean.Response;
@@ -126,7 +126,7 @@ public class ApiTemplate {
             package #PACKAGE_NAME.api;
                         
             import cn.icframework.common.consts.Api;
-            import api.basic.cn.icframework.core.BasicApi;
+            import cn.icframework.core.basic.api.BasicApi;
             import org.springframework.web.bind.annotation.RequestMapping;
             import org.springframework.web.bind.annotation.RestController;
                         
@@ -146,10 +146,10 @@ public class ApiTemplate {
     public final static String APP_TEMPLATE = """
             package #PACKAGE_NAME.api;
                         
-            import cn.icframework.annotation.auth.RequireAuth;
+            import cn.icframework.auth.annotation.RequireAuth;
             import cn.icframework.common.consts.Api;
             import cn.icframework.system.consts.UserType;
-            import api.basic.cn.icframework.core.BasicApi;
+            import cn.icframework.core.basic.api.BasicApi;
             import org.springframework.web.bind.annotation.RequestMapping;
             import org.springframework.web.bind.annotation.RestController;
                         

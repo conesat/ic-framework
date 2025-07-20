@@ -12,10 +12,10 @@ public class WrapperBuilderTemplate {
             import cn.icframework.common.consts.RequestValue;
             import cn.icframework.mybatis.query.QueryField;
             import #PACKAGE_NAME.def.#MODEL_NAME_FIST_UPDef;
-            import wrapperbuilder.basic.cn.icframework.core.BasicWrapperBuilder;
-            import wrapperbuilder.basic.cn.icframework.core.DefaultOrderBy;
+            import cn.icframework.core.basic.wrapperbuilder.BasicWrapperBuilder;
+            import cn.icframework.core.basic.wrapperbuilder.DefaultOrderBy;
             import wrapperbuilder.basic.cn.icframework.core.OrderBuilder;
-            import wrapperbuilder.basic.cn.icframework.core.QueryParams;
+            import cn.icframework.core.basic.wrapperbuilder.QueryParams;
             import cn.icframework.core.common.bean.OrderItem;
             import cn.icframework.mybatis.wrapper.SqlWrapper;
             import org.springframework.stereotype.Component;

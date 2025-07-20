@@ -780,6 +780,11 @@ public class SqlWrapper implements Serializable {
         tables.add(queryTable.getAsNameWrap());
         WHERE(queryTable);
         set(queryTable);
+        Field versionField = queryTable.getVersionField();
+        if (versionField != null) {
+            String tableColumnName = ModelClassUtils.getTableColumnName(versionField);
+            sets.add(tableColumnName + " = " + tableColumnName + " + 1");
+        }
         statementType = StatementType.UPDATE;
     }
 
@@ -792,6 +797,20 @@ public class SqlWrapper implements Serializable {
     protected final void update(Class<?> entity) {
         String tableName = ModelClassUtils.getTableName(entity);
         tables.add(tableName);
+        Field versionField = ModelClassUtils.getVersion(entity);
+        if (versionField != null) {
+            String tableColumnName = ModelClassUtils.getTableColumnName(versionField);
+            try {
+                Long val = (Long) versionField.get(entity);
+                if (val != null) {
+                    where.add(tableColumnName + "=" + val);
+                }
+                // 乐观锁太大重置为1
+                sets.add(tableColumnName + " = " + (val != null && val < Long.MAX_VALUE ? tableColumnName + " + 1" : 1));
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        }
         statementType = StatementType.UPDATE;
     }
 
@@ -952,7 +971,7 @@ public class SqlWrapper implements Serializable {
                 for (Condition condition : queryTable.getWheres()) {
                     joinOns.add(getWhereParam(queryTable, condition));
                 }
-                Field logicDeleteField = ModelClassUtils.getLogicDelete(queryTable.getTableClass());
+                Field logicDeleteField = queryTable.getLogicDeleteField();
                 Table table = queryTable.getTableClass().getAnnotation(Table.class);
                 if (logicDeleteField != null) {
                     joinOns.add(String.format("%s.%s%s%s", queryTable.getAsNameOrName(), ModelClassUtils.getTableColumnName(table, logicDeleteField), CompareEnum.NE.getKey(coverXml), IcParamsConsts.PARAMETER_LOGIC_DELETE_GET));

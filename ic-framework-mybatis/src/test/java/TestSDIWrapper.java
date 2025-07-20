@@ -131,6 +131,16 @@ public class TestSDIWrapper {
         System.out.println(sql);
         System.out.println(params.toString());
     }
+    @Test
+    public void testUpdateEntity() {
+        UserDef table = UserDef.table();
+        SqlWrapper where =
+                UPDATE(table.id.set(null).name.isNull().name.set("123"));
+        Map<String, Object> params = where.getParams();
+        String sql = where.sql();
+        System.out.println(sql);
+        System.out.println(params.toString());
+    }
 
     @Test
     public void testSelect() {

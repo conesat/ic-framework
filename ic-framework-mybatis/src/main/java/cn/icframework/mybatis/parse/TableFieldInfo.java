@@ -1,7 +1,9 @@
 package cn.icframework.mybatis.parse;
 
 import cn.icframework.mybatis.annotation.Id;
+import cn.icframework.mybatis.annotation.LogicDelete;
 import cn.icframework.mybatis.annotation.TableField;
+import cn.icframework.mybatis.annotation.Version;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,6 +19,8 @@ import java.lang.reflect.Field;
 public class TableFieldInfo {
     private Id id;
     private TableField tableField;
+    private Version version;
+    private LogicDelete logicDelete;
     private Field field;
     private String tableColumnName;
 }
