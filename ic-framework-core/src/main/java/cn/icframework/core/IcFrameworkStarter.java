@@ -39,7 +39,7 @@ public class IcFrameworkStarter implements CommandLineRunner {
                   _| || |____  | |  | | | (_| | | | | | |  __/\\ V  V / (_) | |  |   <\s
                  |_____\\_____| |_|  |_|  \\__,_|_| |_| |_|\\___| \\_/\\_/ \\___/|_|  |_|\\_\\
                  =============================================================================                       \s
-                 << IC Framework V1.0.0 -- start successful >>                                                              \s
+                 << IC Framework V1.0.1 -- start successful >>                                                              \s
                 """);
         System.out.format("\033[0;29m");
     }
