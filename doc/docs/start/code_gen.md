@@ -13,7 +13,7 @@
 
   编译其中的idea-plugin: 执行gradle > Tasks > shadow > shadowJar
 
-- 直接点击下载作者编译的插件 [idea-plugin](/public/idea-plugin-1.0-SNAPSHOT-all.jar)
+- 直接点击下载作者编译的插件 [idea-plugin](/public/ic-idea-plugin-1.0-SNAPSHOT-all.jar)
 
 
 ## 注意
