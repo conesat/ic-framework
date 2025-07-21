@@ -1,4 +1,4 @@
-package cn.icframework.gen.template.vue;
+package cn.icframework.temp.vue;
 
 /**
  * @author hzl
@@ -16,7 +16,7 @@ public class VueSelectTemplate {
                       </template>
                     </t-input>
                   </t-row>
-            
+                        
                   <t-table
                     :data="data"
                     :columns="columns"
@@ -46,30 +46,30 @@ public class VueSelectTemplate {
                 </t-card>
               </div>
             </template>
-            
+                        
             <script lang="ts">
             export default {
               name: '#MODEL_NAME_FIST_DOWNSelect',
             };
             </script>
-            
+                        
             <script setup lang="ts">
             import {SearchIcon} from 'tdesign-icons-vue-next';
             import {PrimaryTableCol} from 'tdesign-vue-next';
             import {computed, onMounted, ref} from 'vue';
-            
+                        
             import Api#MODEL_NAME_FIST_UP from '@/api#MODULE/Api#MODEL_NAME_FIST_UP';
             import {prefix} from '@/config/global';
             import {useSettingStore} from '@/store';
             import {queryDef, paginationDef} from "@/api/common/query";
-            
+                        
             const props = defineProps({
               mutilate: {
                 type: Boolean,
                 default: false
               }
             });
-            
+                        
             // 定义变量 start -------------------
             const emit = defineEmits(['selectSuccess', 'cancel']);
             // 读取设置内容
@@ -77,7 +77,7 @@ public class VueSelectTemplate {
             // 排序
             const sort = ref([{
               // 按照 sort 字段进行排序
-              sortBy: 'sort',
+              sortBy: '',
               // 是否按照降序进行排序
               descending: false,
             }]);
@@ -101,7 +101,7 @@ public class VueSelectTemplate {
             #CONTENT
             ];
             // 定义变量 end -------------------
-            
+                        
             // 定义方法 start -------------------
             // 获取列表数据
             const getData = async (reload ?: boolean) => {
@@ -156,15 +156,15 @@ public class VueSelectTemplate {
               window.open(`#MODULE/#MODEL_SPLIT_NAME-edit?autoClose=true`);
             };
             // 定义方法 end -------------------
-            
+                        
             // vue生命周期
             onMounted(() => {
               getData();
             });
             </script>
-            
+                        
             <style lang="less" scoped>
-            
+                        
             </style>
             """;
 }

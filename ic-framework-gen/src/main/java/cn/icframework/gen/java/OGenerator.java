@@ -4,6 +4,7 @@ import cn.icframework.mybatis.annotation.Id;
 import cn.icframework.mybatis.annotation.TableField;
 import cn.icframework.gen.GenUtils;
 import cn.icframework.gen.Generator;
+import cn.icframework.mybatis.annotation.Version;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -75,7 +76,8 @@ public class OGenerator {
             for (Field declaredField : declaredFields) {
                 TableField tableField = declaredField.getDeclaredAnnotation(TableField.class);
                 Id id = declaredField.getDeclaredAnnotation(Id.class);
-                if (tableField == null && id == null) {
+                Version version = declaredField.getDeclaredAnnotation(Version.class);
+                if (tableField == null && id == null && version == null) {
                     continue;
                 }
                 if (!declaredField.getType().isPrimitive()) {

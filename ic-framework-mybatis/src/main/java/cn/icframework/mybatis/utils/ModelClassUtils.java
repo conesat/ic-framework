@@ -49,7 +49,9 @@ public class ModelClassUtils {
         }
         TableField tableField = field.getDeclaredAnnotation(TableField.class);
         Id id = field.getDeclaredAnnotation(Id.class);
-        if (tableField == null && id == null) {
+        Version version = field.getDeclaredAnnotation(Version.class);
+        LogicDelete logicDelete = field.getDeclaredAnnotation(LogicDelete.class);
+        if (tableField == null && id == null && logicDelete == null && version == null) {
             return null;
         }
         return getColumnName(table, tableField, field.getName());

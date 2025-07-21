@@ -1,4 +1,4 @@
-package cn.icframework.gen.template.vue;
+package cn.icframework.temp.vue;
 
 /**
  * @author hzl
@@ -50,29 +50,29 @@ public class VueIndexTemplate {
                     </template>
                   </t-table>
                 </t-card>
-            
+                        
                 <t-dialog v-model:visible="confirmDeleteVisible" header="确认" :body="confirmDeleteBody"
                           @confirm="onConfirmDelete"/>
               </div>
             </template>
-            
+                        
             <script lang="ts">
             export default {
               name: '#MODEL_NAME_FIST_DOWNIndex',
             };
             </script>
-           
+                        
             <script setup lang="ts">
             import { SearchIcon } from 'tdesign-icons-vue-next';
             import { MessagePlugin, PrimaryTableCol } from 'tdesign-vue-next';
             import { computed, onMounted, ref } from 'vue';
             import { useRouter } from 'vue-router';
-            
+                        
             import Api#MODEL_NAME_FIST_UP from '@/api#MODULE/Api#MODEL_NAME_FIST_UP';
             import { prefix } from '@/config/global';
             import { useSettingStore } from '@/store';
             import {queryDef, paginationDef} from "@/api/common/query";
-            
+                        
             // 定义变量 start -------------------
             // 排序
             const sort = ref([{
@@ -114,14 +114,8 @@ public class VueIndexTemplate {
               },
             ];
             // 定义变量 end -------------------
-            
+                        
             // 定义方法 start -------------------
-            // 排序变化
-            const sortChange = (sortInfo: any) => {
-              // 对于受控属性而言，这里的赋值很重要，不可缺少
-              sort.value = sortInfo;
-              queryForm.value.orders = JSON.stringify(sort.value)
-            };
             // 获取列表数据
             const getData = async (reload ?: boolean) => {
               if (reload) {
@@ -210,13 +204,13 @@ public class VueIndexTemplate {
                 } as any),
             );
             // 定义方法 end -------------------
-            
+                        
             // vue生命周期
             onMounted(() => {
               getData();
             });
             </script>
-            
+                        
             <style lang="less" scoped>
             </style>
             """;

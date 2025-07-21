@@ -1,4 +1,4 @@
-package cn.icframework.gen.template.vue;
+package cn.icframework.temp.vue;
 
 /**
  * @author hzl
@@ -80,8 +80,8 @@ public class VueEditTemplate {
                 Api#MODEL_NAME_FIST_UP.edit({
                     data: formData.value,
                     success: (res: any) => {
-                        MessagePlugin.success('已完成');
-                        closeOrBack(route, router)
+                      MessagePlugin.success('已完成');
+                      closeOrBack(route, router)
                     }
                 });
               }

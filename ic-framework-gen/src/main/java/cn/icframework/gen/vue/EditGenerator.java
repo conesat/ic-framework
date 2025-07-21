@@ -116,7 +116,10 @@ public class EditGenerator {
                                           <t-input v-model="formData.%s" placeholder="请输入%s" #MAX_LENGTH/>
                                         </t-form-item>
                                       </t-col>
-                            """.replace("#MAX_LENGTH", Objects.equals(initVal, "''") ? ":maxlength=\"%d\"" : "");
+                            """
+                            .replace("#MAX_LENGTH", Objects.equals(initVal, "''") ? ":maxlength=\"%d\"" : "")
+                            .replace("#IF", StringUtils.isNotEmpty(tableField.onInsertValue()) || StringUtils.isNotEmpty(tableField.onUpdateValue()) ? "v-if=\"!formData.id\"" : "");
+
                     formItems.add(String.format(item, comment, fieldName, fieldName, comment, maxLength));
                 }
             }

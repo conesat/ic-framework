@@ -380,7 +380,8 @@ public class DDLHelper {
                 if (version != null) {
                     // 获取字段的类型
                     Class<?> fieldType = declaredField.getType();
-                    Assert.isTrue(fieldType == Long.class || fieldType == long.class, entityClass.getSimpleName() + "." + fieldType.getName() + " @Version 字段必须是 Long 或 long 类型");
+                    Assert.isTrue(fieldType == Long.class || fieldType == long.class,
+                            entityClass.getName() + "." + declaredField.getName() + " @Version 字段必须是 Long 或 long 类型");
                 }
 
                 if (tableField == null && id == null && version == null && logicDelete == null) {
@@ -418,10 +419,10 @@ public class DDLHelper {
             String sqlType,
             boolean notNull) {
         if (logicDelete != null) {
-            return " `" + fieldName + "` " + sqlType + " NOT NULL DEFAULT 0 COMMENT 逻辑删除";
+            return " `" + fieldName + "` " + sqlType + " NOT NULL DEFAULT 0 COMMENT '逻辑删除'";
         }
         if (version != null) {
-            return " `" + fieldName + "` " + sqlType + " NOT NULL DEFAULT 1 COMMENT 乐观锁";
+            return " `" + fieldName + "` " + sqlType + " NOT NULL DEFAULT 1 COMMENT '乐观锁'";
         }
         String nullAble = notNull ? " NOT NULL " : " NULL ";
         String defaultValue = tableField != null && StringUtils.hasLength(tableField.defaultValue()) ? " DEFAULT " + tableField.defaultValue() + " " : "";
@@ -453,7 +454,8 @@ public class DDLHelper {
                 if (version != null) {
                     // 获取字段的类型
                     Class<?> fieldType = declaredField.getType();
-                    Assert.isTrue(fieldType == Long.class || fieldType == long.class, entityClass.getSimpleName() + "." + fieldType.getName() + " @Version 字段必须是 Long 或 long 类型");
+                    Assert.isTrue(fieldType == Long.class || fieldType == long.class,
+                            entityClass.getName() + "." + declaredField.getName() + " @Version 字段必须是 Long 或 long 类型");
                 }
                 if (tableField == null && id == null && version == null && logicDelete == null) {
                     continue;

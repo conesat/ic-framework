@@ -110,6 +110,7 @@ public class SqlParseUtils {
         Version version = field.getVersion();
         if (version != null) {
             try {
+                field.getField().setAccessible(true); // 如果字段是私有的，需要设置为可访问
                 Long val = (Long) field.getField().get(entity);
                 sql.SET_SOURCE_PARAM(fieldName, val != null && val < Long.MAX_VALUE ? fieldName + " + 1" : 1);
                 if (val != null) {
