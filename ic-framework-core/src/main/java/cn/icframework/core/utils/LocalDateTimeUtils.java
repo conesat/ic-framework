@@ -23,9 +23,8 @@ public class LocalDateTimeUtils {
     /**
      * 文本转日期
      *
-     * @param format
-     * @param strDate
-     * @return
+     * @param format  日期格式
+     * @param strDate 文本
      */
     public static LocalDateTime getDateTimeFromStr(String format, String strDate) {
         // 这里只能转换带时间的格式，不带小时 分钟 这些会报错
@@ -35,9 +34,8 @@ public class LocalDateTimeUtils {
     /**
      * 文本转日期
      *
-     * @param format
-     * @param strDate
-     * @return
+     * @param format  日期格式
+     * @param strDate 文本
      */
     public static LocalDate getDateFromStr(String strDate, String format) {
         return LocalDate.parse(strDate, DateTimeFormatter.ofPattern(format));
@@ -47,9 +45,8 @@ public class LocalDateTimeUtils {
     /**
      * 获取指定格式的日期
      *
-     * @param format 格式
-     * @param dateTime   时间
-     * @return
+     * @param format   格式
+     * @param dateTime 时间
      */
     public static String getFormatDate(String format, LocalDateTime dateTime) {
         if (dateTime == null) {
@@ -63,7 +60,6 @@ public class LocalDateTimeUtils {
      * 获取指定格式的日期
      *
      * @param format 格式
-     * @return
      */
     public static String getFormatDate(String format) {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern(format);
@@ -75,7 +71,6 @@ public class LocalDateTimeUtils {
      *
      * @param format 格式
      * @param date   时间
-     * @return
      */
     public static String getFormatDate(String format, LocalDate date) {
         if (date == null) {
@@ -88,16 +83,28 @@ public class LocalDateTimeUtils {
 
     /**
      * 获取当前时间
-     *
-     * @return
      */
     public static String getFormatDateTime() {
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern(TIME_FORMAT_6STR);
-        return dtf.format(LocalDateTime.now());
+        return getFormatDate(TIME_FORMAT_6STR);
     }
 
 
-    public static  LocalDateTime parse(long timestamp) {
+    public static LocalDateTime parse(long timestamp) {
         return LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault());
     }
+    /**
+     * 将秒数转为 HH:mm:ss 格式
+     *
+     * @param seconds 秒数
+     * @return 格式为 HH:mm:ss 的字符串表示
+     */
+    public static String getFormatSeconds(long seconds) {
+        long hours = seconds / 3600;
+        long remainingSeconds = seconds % 3600;
+        long minutes = remainingSeconds / 60;
+        long secs = remainingSeconds % 60;
+
+        return String.format("%02d:%02d:%02d", hours, minutes, secs);
+    }
+
 }
