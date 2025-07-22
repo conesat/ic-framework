@@ -8,10 +8,10 @@ public interface Temp {
     String TABLE = """
             package #PACKAGE;
 
-            import annotation.cn.icframework.mybatis.Id;
-            import annotation.cn.icframework.mybatis.Table;
-            import annotation.cn.icframework.mybatis.TableField;
-            import consts.cn.icframework.mybatis.IdType;
+            import cn.icframework.mybatis.annotation.Id;
+            import cn.icframework.mybatis.annotation.Table;
+            import cn.icframework.mybatis.annotation.TableField;
+            import cn.icframework.mybatis.consts.IdType;
             import lombok.Getter;
             import lombok.Setter;
 
@@ -28,19 +28,19 @@ public interface Temp {
                 /**
                 * 名称
                 */
-                @TableField(value = "name", comment = "名称")
+                @TableField(comment = "名称")
                 private String name;
     
                 /**
                 * 创建时间
                 */
-                @TableField(value = "create_time", notNull = true, comment = "创建时间", onInsertValue = "now()")
+                @TableField(notNull = true, comment = "创建时间", onInsertValue = "now()")
                 private LocalDateTime createTime;
     
                 /**
                 * 更新时间
                 */
-                @TableField(value = "update_time", comment = "更新时间", onUpdateValue = "now()")
+                @TableField(comment = "更新时间", onUpdateValue = "now()")
                 private LocalDateTime updateTime;
             }
             """;

@@ -44,10 +44,10 @@ public class ModelGenerator {
     final String MODEL_TEMPLATE = """
             package #PACKAGE_NAME;
 
-            import annotation.cn.icframework.mybatis.Id;
-            import annotation.cn.icframework.mybatis.Table;
-            import annotation.cn.icframework.mybatis.TableField;
-            import consts.cn.icframework.mybatis.IdType;
+            import cn.icframework.mybatis.annotation.Id;
+            import cn.icframework.mybatis.annotation.Table;
+            import cn.icframework.mybatis.annotation.TableField;
+            import cn.icframework.mybatis.consts.IdType;
             import lombok.Getter;
             import lombok.Setter;
 

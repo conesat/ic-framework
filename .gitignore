@@ -3,3 +3,5 @@
 /doc/node_modules/*
 /doc/.vitepress/dist/*
 /doc/.vitepress/cache/*
+/idea-plugin/idea-plugin/.gradle/*
+/idea-plugin/idea-plugin/build/*
