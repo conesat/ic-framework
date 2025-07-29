@@ -4,6 +4,7 @@ package cn.icframework.core.common.helper;
 import cn.icframework.core.common.bean.Response;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
@@ -32,28 +33,28 @@ public class ResponseResultHandler implements ResponseBodyAdvice<Object> {
 
     /**
      * 判断是否需要执行 beforeBodyWrite 方法。
-     * @param arg0 方法参数
-     * @param arg1 消息转换器类型
+     * @param returnType 方法参数
+     * @param converterType 消息转换器类型
      * @return true 执行，false 不执行
      */
     @Override
-    public boolean supports(@NotNull MethodParameter arg0, @NotNull Class<? extends HttpMessageConverter<?>> arg1) {
+    public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
         return true;
     }
 
     /**
      * 对返回值做包装处理。
      * @param body 返回体
-     * @param arg1 方法参数
-     * @param arg2 媒体类型
-     * @param arg3 消息转换器类型
-     * @param arg4 请求
-     * @param arg5 响应
+     * @param returnType 方法参数
+     * @param selectedContentType 媒体类型
+     * @param selectedConverterType 消息转换器类型
+     * @param request 请求
+     * @param response 响应
      * @return 包装后的响应体
      */
     @Override
-    public Object beforeBodyWrite(Object body, @NotNull MethodParameter arg1, @NotNull MediaType arg2,
-                                  @NotNull Class<? extends HttpMessageConverter<?>> arg3, @NotNull ServerHttpRequest arg4, @NotNull ServerHttpResponse arg5) {
+    public Object beforeBodyWrite(@Nullable Object body, MethodParameter returnType, MediaType selectedContentType,
+                                  Class<? extends HttpMessageConverter<?>> selectedConverterType, ServerHttpRequest request, ServerHttpResponse response) {
         if (body instanceof String) {
             ObjectMapper om = new ObjectMapper();
             try {
