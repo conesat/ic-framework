@@ -6,7 +6,7 @@
     <parent>
         <groupId>cn.icframework</groupId>
         <artifactId>ic-framework-dependencies</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.2</version>
         <relativePath>../ic-framework-dependencies/pom.xml</relativePath>
     </parent>
     <name>ic-framework-mybatis-processor-test</name>
