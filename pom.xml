@@ -24,6 +24,7 @@
         <module>ic-framework-dber</module>
         <module>ic-framework-mybatis-processor</module>
         <module>ic-framework-spring-boot-starter</module>
+        <module>ic-framework-version-plugin</module>
     </modules>
 
     <properties>

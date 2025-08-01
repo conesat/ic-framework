@@ -29,6 +29,10 @@ public class IcFrameworkStarter implements CommandLineRunner {
      */
     @Override
     public void run(String... args) {
+        String version = IcFrameworkStarter.class.getPackage().getImplementationVersion();
+        if (version == null) {
+            version = "1.0.2"; // 默认版本号
+        }
         System.out.format("\033[0;34m");
         System.out.println("""
                 \s
@@ -39,8 +43,8 @@ public class IcFrameworkStarter implements CommandLineRunner {
                   _| || |____  | |  | | | (_| | | | | | |  __/\\ V  V / (_) | |  |   <\s
                  |_____\\_____| |_|  |_|  \\__,_|_| |_| |_|\\___| \\_/\\_/ \\___/|_|  |_|\\_\\
                  =============================================================================                       \s
-                 << IC Framework V1.0.1 -- start successful >>                                                              \s
-                """);
+                 << IC Framework V%s -- start successful >>                                                              \s
+                """.formatted(version));
         System.out.format("\033[0;29m");
     }
 }

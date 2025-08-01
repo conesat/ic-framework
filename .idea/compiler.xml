@@ -16,8 +16,8 @@
         <module name="ic-framework-gen-template" />
         <module name="ic-framework-annotation" />
         <module name="ic-framework-cache" />
+        <module name="ic-framework-version-plugin" />
         <module name="ic-framework-core" />
-        <module name="ic-framework-mybatis-processor" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>

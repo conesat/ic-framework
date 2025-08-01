@@ -15,21 +15,23 @@
     <properties>
         <java.version>21</java.version>
         <ic-framework-version>1.0.2</ic-framework-version>
-        <spring-boot-version>3.5.3</spring-boot-version>
+        <spring-boot-version>3.5.4</spring-boot-version>
         <codec-version>1.18.0</codec-version>
         <lang3-version>3.18.0</lang3-version>
-        <spring-tx-version>6.2.5</spring-tx-version>
+        <spring-tx-version>6.2.8</spring-tx-version>
         <jwt-version>4.5.0</jwt-version>
+        <!-- Jackson Databind 安全版本 -->
+        <jackson-version>2.17.0</jackson-version>
         <caffeine-version>3.2.1</caffeine-version>
         <fastjson-version>2.0.57</fastjson-version>
-        <validation-version>3.5.3</validation-version>
+        <validation-version>3.5.4</validation-version>
         <jakarta-validation-version>3.1.1</jakarta-validation-version>
         <lombok-version>1.18.38</lombok-version>
         <mysql-version>9.2.0</mysql-version>
         <okhttp-version>4.12.0</okhttp-version>
         <snakeyaml-version>2.0</snakeyaml-version>
         <mybatis-version>3.0.4</mybatis-version>
-        <redis-version>3.1.0</redis-version>
+        <redis-version>3.5.4</redis-version>
         <kaptcha-version>2.3.2</kaptcha-version>
         <agent-utils-version>1.21</agent-utils-version>
         <ip2region-version>2.7.0</ip2region-version>
@@ -129,6 +131,11 @@
                 <groupId>com.auth0</groupId>
                 <artifactId>java-jwt</artifactId>
                 <version>${jwt-version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson-version}</version>
             </dependency>
             <!--本机缓存-->
             <dependency>

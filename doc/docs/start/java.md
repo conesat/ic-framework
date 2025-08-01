@@ -8,39 +8,31 @@
 project是自行开发扩展的模块，当然也可以取其他名字
 
 ```
-📁ic-framework-service
-    📁ic-framework-project [业务代码]
-        📁src
-            📁main
-                📁java
-                📁resources
-                    📁i18n [国际化配置]
-                    📁init [初始化数据]
-                        📁menu [管理页面菜单配置]
-                        📁pos [岗位初始化]
-                        📁rp [角色权限初始化]
-                    📁sqls [sql更新脚本]
-    📁ic-framework-system [系统预置功能]
-        📁src
-            📁main
-                📁java
-                    📁cn.icframework.system
-                        📁config [配置]
-                        📁consts [常量]
-                        📁enums [枚举]
-                        📁module [业务模块集合]
-                            📁setting [业务模块]
-                                📁api [业务接口]
-                                📁dao [mybatisMapper]
-                                📁pojo [数据对象]
-                                    📁dto [入参]
-                                    📁vo [出参]
-                                📁service [业务]
-                                📁wrapperbuilder [sql构建]
-                            📁...
-                        📁runner [初始化]
-                        📁utils [工具类]
-                📁resources
+ic-framework-system/
+└── src/main/java/cn/icframework/system/
+    ├── module/                    # 业务模块
+    │   ├── user/                 # 用户模块
+    │   │   ├── User.java         # 实体类
+    │   │   ├── api/              # 控制器层
+    │   │   │   ├── ApiSysUser.java
+    │   │   │   ├── ApiAppUser.java
+    │   │   │   └── ApiPublicUser.java
+    │   │   ├── service/          # 服务层
+    │   │   │   ├── UserService.java
+    │   │   │   └── IUserInfoProvider.java
+    │   │   ├── dao/              # 数据访问层
+    │   │   │   └── UserMapper.java
+    │   │   ├── pojo/             # 数据传输对象
+    │   │   │   ├── dto/          # 请求对象
+    │   │   │   └── vo/           # 响应对象
+    │   │   └── wrapperbuilder/   # 查询构建器
+    │   │       └── UserWrapperBuilder.java
+    │   ├── role/                 # 角色模块
+    │   ├── menu/                 # 菜单模块
+    │   └── ...                   # 其他模块
+    ├── common/                   # 公共组件
+    ├── config/                   # 配置类
+    └── utils/                    # 工具类
 ```
 
 ### resources/init/rp
