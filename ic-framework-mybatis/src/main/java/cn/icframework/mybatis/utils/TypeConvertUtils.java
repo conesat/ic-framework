@@ -34,6 +34,15 @@ public class TypeConvertUtils {
                     return ev;
                 }
             }
+            
+            // 尝试通过反射调用type的instanceOf方法
+            try {
+                Method instanceOfMethod = type.getMethod("instanceOf", Integer.class);
+                return instanceOfMethod.invoke(null, ((Number) v).intValue());
+            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {
+                // 忽略异常
+                return null;
+            }
         }
         if ((v instanceof Timestamp) && type.equals(LocalDateTime.class)) {
             return ((Timestamp) v).toLocalDateTime();
@@ -51,4 +60,4 @@ public class TypeConvertUtils {
             return v;
         }
     }
-} 
+}
