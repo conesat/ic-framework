@@ -5,7 +5,7 @@
     <parent>
         <groupId>cn.icframework</groupId>
         <artifactId>ic-framework</artifactId>
-        <version>1.0.2</version>
+        <version>1.0.3</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>ic-framework-dependencies</artifactId>
@@ -13,12 +13,13 @@
     <name>ic-framework-dependencies</name>
     <description>依赖版本统一管理</description>
     <properties>
-        <java.version>21</java.version>
-        <ic-framework-version>1.0.2</ic-framework-version>
-        <spring-boot-version>3.5.4</spring-boot-version>
+        <java.version>25</java.version>
+        <ic-framework-version>1.0.3</ic-framework-version>
+        <spring-boot-version>3.5.6</spring-boot-version>
+        <spring-framework-version>6.2.11</spring-framework-version>
         <codec-version>1.18.0</codec-version>
         <lang3-version>3.18.0</lang3-version>
-        <spring-tx-version>6.2.8</spring-tx-version>
+        <spring-tx-version>6.2.10</spring-tx-version>
         <jwt-version>4.5.0</jwt-version>
         <!-- Jackson Databind 安全版本 -->
         <jackson-version>2.17.0</jackson-version>
@@ -36,8 +37,9 @@
         <agent-utils-version>1.21</agent-utils-version>
         <ip2region-version>2.7.0</ip2region-version>
         <lettuce-version>6.7.1.RELEASE</lettuce-version>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+        <logback-version>1.5.19</logback-version>
+        <maven.compiler.source>25</maven.compiler.source>
+        <maven.compiler.target>25</maven.compiler.target>
         <junit-jupiter-version>5.10.0</junit-jupiter-version>
     </properties>
 
@@ -240,6 +242,40 @@
                 <artifactId>spring-boot-starter</artifactId>
                 <version>${spring-boot-version}</version>
             </dependency>
+            <!-- Logback Classic -->
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${logback-version}</version>
+            </dependency>
+            <!-- Logback Core -->
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-core</artifactId>
+                <version>${logback-version}</version>
+            </dependency>
+
+            <!-- Spring Framework 组件版本管理，确保安全版本 -->
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-core</artifactId>
+                <version>${spring-framework-version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-beans</artifactId>
+                <version>${spring-framework-version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-context</artifactId>
+                <version>${spring-framework-version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-jdbc</artifactId>
+                <version>${spring-framework-version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -248,6 +284,24 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>25</source>
+                    <target>25</target>
+                    <encoding>UTF-8</encoding>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok-version}</version>
+                        </path>
+                        <!-- 添加我们的注解处理器 -->
+                        <path>
+                            <groupId>cn.icframework</groupId>
+                            <artifactId>ic-framework-mybatis-processor</artifactId>
+                            <version>${ic-framework-version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
             </plugin>
         </plugins>
     </build>

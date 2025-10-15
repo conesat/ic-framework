@@ -6,11 +6,11 @@
     <parent>
         <groupId>cn.icframework</groupId>
         <artifactId>ic-framework-dependencies</artifactId>
-        <version>1.0.2</version>
+        <version>1.0.3</version>
         <relativePath>../ic-framework-dependencies/pom.xml</relativePath>
     </parent>
     <name>ic-framework-mybatis-processor-test</name>
-    <artifactId>ic-framework-test</artifactId>
+    <artifactId>ic-framework-mybatis-processor-test</artifactId>
     <packaging>jar</packaging>
 
     <distributionManagement>
@@ -32,7 +32,7 @@
         <dependency>
             <groupId>cn.icframework</groupId>
             <artifactId>ic-framework-mybatis-processor</artifactId>
-            <scope>compile</scope>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -50,6 +50,11 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessors>
+                        <annotationProcessor>cn.icframework.mybatis.processor.TableProcessor</annotationProcessor>
+                    </annotationProcessors>
+                </configuration>
             </plugin>
         </plugins>
     </build>

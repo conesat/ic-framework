@@ -97,9 +97,6 @@ public class QueryTable<QT extends QueryTable<?>> {
 
     /**
      * 字段 as
-     *
-     * @param lambdaGetter
-     * @return
      */
     @SuppressWarnings("unchecked")
     public <T> QT as(LambdaGetter<T> lambdaGetter) {

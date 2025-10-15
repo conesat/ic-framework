@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>cn.icframework</groupId>
     <artifactId>ic-framework</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
     <packaging>pom</packaging>
     <name>ic-framework</name>
     <description>IC Framework - 集成开发框架</description>
@@ -23,15 +23,17 @@
         <module>ic-framework-mybatis</module>
         <module>ic-framework-dber</module>
         <module>ic-framework-mybatis-processor</module>
+        <module>ic-framework-mybatis-processor-test</module>
         <module>ic-framework-spring-boot-starter</module>
-        <module>ic-framework-version-plugin</module>
+        <module>ic-framework-springboot-parent</module>
+<!--        <module>ic-framework-version-plugin</module>-->
     </modules>
 
     <properties>
         <!-- 基础配置 -->
-        <java.version>21</java.version>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+        <java.version>25</java.version>
+        <maven.compiler.source>25</maven.compiler.source>
+        <maven.compiler.target>25</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
@@ -95,8 +97,8 @@
                         <artifactId>maven-compiler-plugin</artifactId>
                         <version>3.11.0</version>
                         <configuration>
-                            <source>21</source>
-                            <target>21</target>
+                            <source>25</source>
+                            <target>25</target>
                             <encoding>UTF-8</encoding>
                         </configuration>
                     </plugin>
@@ -162,15 +164,41 @@
     </profiles>
 
     <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-toolchains-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>toolchain</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <toolchains>
+                        <jdk>
+                            <version>25</version>
+                        </jdk>
+                    </toolchains>
+                </configuration>
+            </plugin>
+        </plugins>
         <pluginManagement>
             <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-toolchains-plugin</artifactId>
+                    <version>3.1.0</version>
+                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.11.0</version>
                     <configuration>
-                        <source>21</source>
-                        <target>21</target>
+                        <source>25</source>
+                        <target>25</target>
                         <encoding>UTF-8</encoding>
                     </configuration>
                 </plugin>

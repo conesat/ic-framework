@@ -1,8 +1,8 @@
 # IC Framework
 
-[![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://openjdk.java.net/projects/jdk/21/)
+[![Java](https://img.shields.io/badge/Java-25-orange.svg)](https://openjdk.java.net/projects/jdk/25/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.3-green.svg)](https://spring.io/projects/spring-boot)
-[![Maven](https://img.shields.io/badge/Maven-3.11.0-blue.svg)](https://maven.apache.org/)
+[![Maven](https://img.shields.io/badge/Maven-4.0.0--rc--4-blue.svg)](https://maven.apache.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ## 📖 项目介绍
@@ -106,8 +106,8 @@ ic-framework/
 
 ### 环境要求
 
-- JDK 21+
-- Maven 3.6+
+- JDK 25+
+- Maven 4.0.0+
 - Spring Boot 3.5.3+
 
 ### 安装使用

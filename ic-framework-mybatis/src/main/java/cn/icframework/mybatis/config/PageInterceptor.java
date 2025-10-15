@@ -23,7 +23,6 @@ import java.util.Properties;
 
 /**
  * MyBatis 分页拦截器
- * 
  * 该拦截器用于自动处理分页查询，主要功能包括：
  * 1. 自动执行 COUNT 查询获取总记录数
  * 2. 自动为原始 SQL 添加 LIMIT 子句进行分页
@@ -143,7 +142,7 @@ public class PageInterceptor implements Interceptor {
             return 0;
         } else {
             // 设置总记录数和总页数
-            long total = countResultList.get(0).longValue();
+            long total = countResultList.getFirst().longValue();
             object.setTotal(total);
             object.setPages(total / object.getPageSize());
             return total;

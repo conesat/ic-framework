@@ -6,7 +6,7 @@
     <parent>
         <groupId>cn.icframework</groupId>
         <artifactId>ic-framework-dependencies</artifactId>
-        <version>1.0.2</version>
+        <version>1.0.3</version>
         <relativePath>../ic-framework-dependencies/pom.xml</relativePath>
     </parent>
     <artifactId>ic-framework-mybatis</artifactId>
@@ -18,13 +18,6 @@
         <dependency>
             <groupId>org.mybatis.spring.boot</groupId>
             <artifactId>mybatis-spring-boot-starter</artifactId>
-            <!--排除这个有漏洞的依赖-->
-            <exclusions>
-                <exclusion>
-                    <groupId>org.yaml</groupId>
-                    <artifactId>snakeyaml</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>cn.icframework</groupId>
@@ -56,6 +49,18 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>25</source>
+                    <target>25</target>
+                    <encoding>UTF-8</encoding>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok-version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
             </plugin>
         </plugins>
     </build>
