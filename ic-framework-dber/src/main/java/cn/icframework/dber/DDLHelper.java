@@ -425,7 +425,7 @@ public class DDLHelper {
             return " `" + fieldName + "` " + sqlType + " NOT NULL DEFAULT 1 COMMENT '乐观锁'";
         }
         String nullAble = notNull ? " NOT NULL " : " NULL ";
-        String defaultValue = tableField != null && StringUtils.hasLength(tableField.defaultValue()) ? " DEFAULT " + tableField.defaultValue() + " " : "";
+        String defaultValue = tableField != null && StringUtils.hasLength(tableField.defaultValue()) ? " DEFAULT '" + tableField.defaultValue() + "' " : "";
         String comment = tableField != null && StringUtils.hasLength(tableField.comment()) ? " COMMENT '" + tableField.comment() + "'" : "";
         if (id != null) {
             return " `" + fieldName + "` " + sqlType + " NOT NULL " + (id.idType() == IdType.AUTO ? "AUTO_INCREMENT" : "") + comment;
@@ -496,12 +496,9 @@ public class DDLHelper {
         if ((tableField != null && StringUtils.hasLength(tableField.defaultValue())) && StringUtils.hasLength(tableColumn.getDefaultValue())) {
             String defaultValue = tableField.defaultValue();
             String tableDefaultValue = tableColumn.getDefaultValue();
-            if (tableDefaultValue.equals(defaultValue)
+            return tableDefaultValue.equals(defaultValue)
                     || (tableDefaultValue.equals("b'0'") && (defaultValue.equals("0") || defaultValue.equals("false")))
-                    || (tableDefaultValue.equals("b'1'") && (defaultValue.equals("1") || defaultValue.equals("true")))
-            ) {
-                return true;
-            }
+                    || (tableDefaultValue.equals("b'1'") && (defaultValue.equals("1") || defaultValue.equals("true")));
         }
         return false;
     }
