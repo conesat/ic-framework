@@ -35,7 +35,11 @@ public abstract class IdKeyGenerator implements KeyGenerator {
             for (Object entity : entities) {
                 try {
                     fieldSet.setAccessible(true);
-                    fieldSet.set(entity, generate());
+                    if (fieldSet.getType() == String.class) {
+                        fieldSet.set(entity, generate().toString());
+                    } else {
+                        fieldSet.set(entity, generate());
+                    }
                 } catch (IllegalAccessException e) {
                     throw new RuntimeException(e);
                 }

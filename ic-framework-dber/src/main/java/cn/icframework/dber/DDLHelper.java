@@ -396,7 +396,7 @@ public class DDLHelper {
 
                 // 是否限制非空
                 boolean notNull = tableField != null && tableField.notNull();
-                String sql = getSql(tableField, id, version, logicDelete, fieldName, sqlType, notNull);
+                String sql = getSql(tableField, id, version, logicDelete, declaredField, fieldName, sqlType, notNull);
                 fields.add(sql);
                 if (id != null) {
                     sqlKeys.add(fieldName);
@@ -415,6 +415,7 @@ public class DDLHelper {
             Id id,
             Version version,
             LogicDelete logicDelete,
+            Field declaredField,
             String fieldName,
             String sqlType,
             boolean notNull) {
@@ -425,7 +426,15 @@ public class DDLHelper {
             return " `" + fieldName + "` " + sqlType + " NOT NULL DEFAULT 1 COMMENT '乐观锁'";
         }
         String nullAble = notNull ? " NOT NULL " : " NULL ";
-        String defaultValue = tableField != null && StringUtils.hasLength(tableField.defaultValue()) ? " DEFAULT '" + tableField.defaultValue() + "' " : "";
+        String defaultValue = "";
+        if (tableField != null && StringUtils.hasLength(tableField.defaultValue())) {
+            Class<?> fieldType = declaredField.getType();
+            if (fieldType == String.class) {
+                defaultValue = " DEFAULT '" + tableField.defaultValue() + "' ";
+            } else {
+                defaultValue = " DEFAULT " + tableField.defaultValue() + " ";
+            }
+        }
         String comment = tableField != null && StringUtils.hasLength(tableField.comment()) ? " COMMENT '" + tableField.comment() + "'" : "";
         if (id != null) {
             return " `" + fieldName + "` " + sqlType + " NOT NULL " + (id.idType() == IdType.AUTO ? "AUTO_INCREMENT" : "") + comment;
@@ -464,7 +473,7 @@ public class DDLHelper {
                 boolean notNull = (tableField != null && tableField.notNull()) || id != null;
                 String sqlType = getSqlType(declaredField, tableField);
                 String fieldName = ModelClassUtils.getColumnName(table, tableField, declaredField.getName());
-                String sql = getSql(tableField, id, version, logicDelete, fieldName, sqlType, notNull);
+                String sql = getSql(tableField, id, version, logicDelete, declaredField, fieldName, sqlType, notNull);
                 if (existFields.containsKey(fieldName)) {
                     if (!existFields.get(fieldName).getType().startsWith(sqlType)
                             || existFields.get(fieldName).isNotNull() != notNull
@@ -509,6 +518,7 @@ public class DDLHelper {
         TableField tableField = declaredField.getDeclaredAnnotation(TableField.class);
         LogicDelete logicDelete = declaredField.getDeclaredAnnotation(LogicDelete.class);
         if (logicDelete != null) {
+            Assert.isNotNull(tableField, classTypeName + " 逻辑删除字段需要配合 @TableField 注解使用");
             Assert.isFalse(tableField.notNull() && !StringUtils.hasLength(tableField.defaultValue()), classTypeName + " 逻辑删除字段notNull时，默认 defaultValue 值必填");
 
             Assert.isTrue(declaredField.getType().isAssignableFrom(Boolean.class)
