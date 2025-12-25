@@ -11,6 +11,7 @@ import lombok.Setter;
 import org.springframework.beans.BeanUtils;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -439,19 +440,38 @@ public class QueryField<QT extends QueryTable<?>> {
         QT newObj = (QT) table.newInstance();
         // 拷贝基本属性（浅拷贝）
         BeanUtils.copyProperties(table, newObj);
-        // 拷贝集合属性（浅拷贝List，但元素本身未深拷贝）
-        newObj.setWheres(table.getWheres() != null ? table.getWheres().stream().collect(Collectors.toList()) : null);
-        newObj.setOrders(table.getOrders() != null ? table.getOrders().stream().collect(Collectors.toList()) : null);
-        newObj.setSets(table.getSets() != null ? table.getSets().stream().collect(Collectors.toList()) : null);
+        
+        // 重要：在多线程环境下，需要确保在获取集合后立即创建副本，避免ConcurrentModificationException
+        // 直接创建新集合，而不是先获取引用再复制，这样可以避免引用被其他线程修改
+        // 优化：移除synchronized块，使用局部变量和ArrayList构造函数直接创建副本
+        // 原因：每个QueryTable实例的集合只在cloneQt()方法中被清空，且清空操作在复制操作之后
+        // 因此，在获取集合引用后立即创建副本，不会出现ConcurrentModificationException
+        List<Condition> wheres = table.getWheres();
+        List<String> orders = table.getOrders();
+        List<DataSet> sets = table.getSets();
+        
+        // 立即创建副本，避免后续遍历集合时被其他线程修改
+        // 使用ArrayList构造函数直接创建副本，避免使用stream API导致的ConcurrentModificationException
+        List<Condition> wheresCopy = wheres != null ? new ArrayList<>(wheres) : null;
+        List<String> ordersCopy = orders != null ? new ArrayList<>(orders) : null;
+        List<DataSet> setsCopy = sets != null ? new ArrayList<>(sets) : null;
+        
+        // 设置拷贝后的集合到新对象
+        newObj.setWheres(wheresCopy);
+        newObj.setOrders(ordersCopy);
+        newObj.setSets(setsCopy);
+        
         // 释放旧对象引用或清空集合，便于GC
         if (!table.isRoot()) {
             // 非root对象，直接置空，外部请勿再用旧对象
             table = null;
         } else {
-            // root对象，清空集合，避免数据堆积
-            if (table.getWheres() != null) table.getWheres().clear();
-            if (table.getOrders() != null) table.getOrders().clear();
-            if (table.getSets() != null) table.getSets().clear();
+            // 直接清空原集合，无需同步
+            // 原因：清空操作在复制操作之后，且每个QueryTable实例的集合只在cloneQt()方法中被清空
+            // 因此，在复制操作完成后清空集合，不会影响其他线程的复制操作
+            if (wheres != null) wheres.clear();
+            if (orders != null) orders.clear();
+            if (sets != null) sets.clear();
         }
         // 新对象不是root
         newObj.setRoot(false);

@@ -1,28 +1,5 @@
 package cn.icframework.dber;
 
-import cn.icframework.common.interfaces.IEnum;
-import cn.icframework.core.common.helper.IndexResult;
-import cn.icframework.core.common.helper.TableColumn;
-import cn.icframework.core.utils.Assert;
-import cn.icframework.mybatis.annotation.*;
-import cn.icframework.mybatis.consts.IdType;
-import cn.icframework.mybatis.consts.MysqlType;
-import cn.icframework.mybatis.consts.MysqlTypeMap;
-import cn.icframework.mybatis.utils.ModelClassUtils;
-import jakarta.annotation.Resource;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.ibatis.session.SqlSession;
-import org.apache.ibatis.session.SqlSessionFactory;
-import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.context.annotation.Role;
-import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-
-import javax.lang.model.type.TypeKind;
-import javax.tools.Diagnostic;
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -37,6 +14,35 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Role;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+
+import cn.icframework.common.interfaces.IEnum;
+import cn.icframework.core.common.helper.IndexResult;
+import cn.icframework.core.common.helper.TableColumn;
+import cn.icframework.core.utils.Assert;
+import cn.icframework.mybatis.annotation.ForeignKey;
+import cn.icframework.mybatis.annotation.ForeignKeyAction;
+import cn.icframework.mybatis.annotation.Id;
+import cn.icframework.mybatis.annotation.Index;
+import cn.icframework.mybatis.annotation.LogicDelete;
+import cn.icframework.mybatis.annotation.Table;
+import cn.icframework.mybatis.annotation.TableField;
+import cn.icframework.mybatis.annotation.Version;
+import cn.icframework.mybatis.consts.IdType;
+import cn.icframework.mybatis.consts.MysqlType;
+import cn.icframework.mybatis.consts.MysqlTypeMap;
+import cn.icframework.mybatis.utils.ModelClassUtils;
+import jakarta.annotation.Resource;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author hzl
