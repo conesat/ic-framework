@@ -1,15 +1,16 @@
 package cn.icframework.mybatis.parse;
 
-import cn.icframework.mybatis.annotation.Table;
-import cn.icframework.mybatis.annotation.TableField;
-import cn.icframework.common.interfaces.IEnum;
-import cn.icframework.mybatis.consts.IcParamsConsts;
-import cn.icframework.mybatis.utils.ModelClassUtils;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.lang.NonNull;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
+import cn.icframework.common.interfaces.IEnum;
+import cn.icframework.mybatis.annotation.Table;
+import cn.icframework.mybatis.annotation.TableField;
+import cn.icframework.mybatis.consts.IcParamsConsts;
+import cn.icframework.mybatis.utils.ModelClassUtils;
 
 /**
  * InsertSqlParse 用于生成实体对象的插入SQL语句。
@@ -99,27 +100,33 @@ public class InsertSqlParse implements ISqlParse {
             if (fieldName == null) {
                 return true;
             }
-            columns.add(fieldName);
             TableField tableField = field.getTableField();
             if (tableField != null && StringUtils.hasLength(tableField.onInsertValue())) {
                 values.add(tableField.onInsertValue());
+                columns.add(fieldName);
+                return true;
+            }
+
+            field.getField().setAccessible(true);
+            Object object;
+            try {
+                object = field.getField().get(entity);
+            } catch (IllegalAccessException e) {
+                columns.add(fieldName);
+                values.add("#{item." + field.getField().getName() + "}");
+                return true;
+            }
+            if (object == null) {
                 return true;
             }
             // 枚举类型特殊处理
             if (IEnum.class.isAssignableFrom(field.getField().getType())) {
-                try {
-                    field.getField().setAccessible(true);
-                    IEnum iEnum = (IEnum) field.getField().get(entity);
-                    if (iEnum == null) {
-                        values.add("#{item." + field.getField().getName() + "}");
-                    } else {
-                        values.add(String.valueOf(iEnum.code()));
-                    }
-                } catch (IllegalAccessException e) {
-                    values.add("#{item." + field.getField().getName() + "}");
-                }
+                IEnum iEnum = (IEnum) object;
+                values.add(String.valueOf(iEnum.code()));
+                columns.add(fieldName);
             } else {
                 values.add("#{item." + field.getField().getName() + "}");
+                columns.add(fieldName);
             }
             return true;
         });
@@ -197,4 +204,4 @@ public class InsertSqlParse implements ISqlParse {
     public String parseDeleteById(Class<?> mapperType) {
         throw new UnsupportedOperationException();
     }
-} 
+}
