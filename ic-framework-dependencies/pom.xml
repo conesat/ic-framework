@@ -60,11 +60,6 @@
             </dependency>
             <dependency>
                 <groupId>cn.icframework</groupId>
-                <artifactId>ic-framework-mybatis-processor</artifactId>
-                <version>${ic-framework-version}</version>
-            </dependency>
-            <dependency>
-                <groupId>cn.icframework</groupId>
                 <artifactId>ic-framework-spring-boot-starter</artifactId>
                 <version>${ic-framework-version}</version>
             </dependency>
@@ -191,6 +186,11 @@
                 <version>${ic-framework-version}</version>
             </dependency>
             <dependency>
+                <groupId>cn.icframework</groupId>
+                <artifactId>ic-framework-mybatis-processor</artifactId>
+                <version>${ic-framework-version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-test</artifactId>
                 <version>${spring-boot-version}</version>
@@ -286,12 +286,6 @@
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
                             <version>${lombok-version}</version>
-                        </path>
-                        <!-- 添加我们的注解处理器 -->
-                        <path>
-                            <groupId>cn.icframework</groupId>
-                            <artifactId>ic-framework-mybatis-processor</artifactId>
-                            <version>${ic-framework-version}</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
