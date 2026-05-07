@@ -801,13 +801,21 @@ public class SqlWrapper implements Serializable {
         if (versionField != null) {
             String tableColumnName = ModelClassUtils.getTableColumnName(versionField);
             try {
-                Long val = (Long) versionField.get(entity);
+                // 如果是 Class 类型，且字段非静态，则无法获取实例值，直接设为 null
+                Long val = null;
+                if (!java.lang.reflect.Modifier.isStatic(versionField.getModifiers())) {
+                    // 非静态字段，只有当 entity 不是 Class 时才能尝试获取值
+                    // 但此方法签名中 entity 是 Class<?>，所以通常 val 为 null
+                } else {
+                    val = (Long) versionField.get(null);
+                }
+                
                 if (val != null) {
                     where.add(tableColumnName + "=" + val);
                 }
                 // 乐观锁太大重置为1
                 sets.add(tableColumnName + " = " + (val != null && val < Long.MAX_VALUE ? tableColumnName + " + 1" : 1));
-            } catch (IllegalAccessException e) {
+            } catch (IllegalAccessException | IllegalArgumentException e) {
                 throw new RuntimeException(e);
             }
         }

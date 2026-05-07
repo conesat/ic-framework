@@ -4,7 +4,6 @@ import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.stereotype.Component;
 
 import java.util.Objects;
 
@@ -14,7 +13,6 @@ import java.util.Objects;
  * 用于加载 application-dev.yml 等自定义 YML 配置文件到 Spring 环境。
  * </p>
  */
-@Component
 public class PropertySourcesPlaceholderConfig {
     /**
      * 加载YML格式自定义配置文件。

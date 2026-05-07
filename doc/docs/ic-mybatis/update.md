@@ -22,5 +22,5 @@ userService.updateById(user, true);
 UserDef userDef = UserDef.table();
 SqlWrapper where =
         UPDATE(userDef.id.set(null).name.set("123").name.isNull());
-userService.update(userDef);
+userService.update(where);
 ```

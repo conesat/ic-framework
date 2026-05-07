@@ -7,7 +7,7 @@ import cn.icframework.mybatis.query.QueryField;
 import cn.icframework.mybatis.query.QueryTable;
 import cn.icframework.mybatis.wrapper.SqlWrapper;
 import cn.icframework.mybatis.wrapper.Wrapper;
-import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson2.JSONArray;
 
 import java.util.List;
 

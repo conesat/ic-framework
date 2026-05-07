@@ -44,5 +44,5 @@ SqlWrapper insert = INSERT()
                         .FROM(table)
                         .WHERE(table.name.like("123"))
         );
-userService.inser(insert);
+userService.insert(insert);
 ```

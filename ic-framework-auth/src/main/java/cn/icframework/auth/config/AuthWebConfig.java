@@ -2,6 +2,7 @@ package cn.icframework.auth.config;
 
 import jakarta.annotation.Resource;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
@@ -18,6 +19,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * Web配置，注册自定义拦截器与CORS过滤器。
  */
 @Configuration
+@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 public class AuthWebConfig implements WebMvcConfigurer {
     @Resource
     private IcJwtConfig icLogConfig;

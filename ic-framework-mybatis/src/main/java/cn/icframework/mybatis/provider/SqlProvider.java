@@ -2,7 +2,7 @@ package cn.icframework.mybatis.provider;
 
 import cn.icframework.mybatis.consts.IcParamsConsts;
 import cn.icframework.mybatis.consts.StatementType;
-import cn.icframework.mybatis.mapper.BasicMapper;
+
 import cn.icframework.mybatis.parse.DeleteSqlParse;
 import cn.icframework.mybatis.parse.InsertSqlParse;
 import cn.icframework.mybatis.parse.SelectSqlParse;
@@ -41,7 +41,7 @@ public class SqlProvider {
     /**
      * 构建批量插入的 SQL 语句。
      * <p>
-     * 适用于批量插入实体对象列表，通常用于 {@link BasicMapper#insertBatch(List)}。
+     * 适用于批量插入实体对象列表，通常用于 {@link cn.icframework.mybatis.mapper.BasicMapper#insertBatch(List)}。
      * 
      *
      * @param params  参数 Map，需包含 key=IcParamsConsts.PARAMETER_ENTITY，value=实体对象 List
@@ -58,7 +58,7 @@ public class SqlProvider {
     /**
      * 构建单条插入的 SQL 语句。
      * <p>
-     * 适用于插入单个实体对象，通常用于 {@link BasicMapper#insert(Object)}。
+     * 适用于插入单个实体对象，通常用于 {@link cn.icframework.mybatis.mapper.BasicMapper#insert(Object)}。
      * 
      *
      * @param params  参数 Map，需包含 key=IcParamsConsts.PARAMETER_ENTITY，value=实体对象
@@ -75,7 +75,7 @@ public class SqlProvider {
     /**
      * 通过 SqlWrapper 构建插入 SQL 语句。
      * <p>
-     * 支持自定义 SQL 构建，适用于复杂插入场景，通常用于 {@link BasicMapper#insertBySqlWrapper(SqlWrapper)}。
+     * 支持自定义 SQL 构建，适用于复杂插入场景，通常用于 {@link cn.icframework.mybatis.mapper.BasicMapper#insertBySqlWrapper(SqlWrapper)}。
      * 方法内部会自动注入逻辑删除字段。
      * 
      *
@@ -98,7 +98,7 @@ public class SqlProvider {
     /**
      * 构建根据主键更新的 SQL 语句（忽略 null 字段）。
      * <p>
-     * 适用于根据主键更新实体，忽略为 null 的字段，通常用于 {@link BasicMapper#updateById(Object)}。
+     * 适用于根据主键更新实体，忽略为 null 的字段，通常用于 {@link cn.icframework.mybatis.mapper.BasicMapper#updateById(Object)}。
      * 
      *
      * @param params  参数 Map，需包含 key=IcParamsConsts.PARAMETER_ENTITY，value=实体对象
@@ -115,7 +115,7 @@ public class SqlProvider {
     /**
      * 构建根据主键更新的 SQL 语句（包含 null 字段）。
      * <p>
-     * 适用于根据主键更新实体，null 字段也会被更新，通常用于 {@link BasicMapper#updateByIdWithNull(Object)}。
+     * 适用于根据主键更新实体，null 字段也会被更新，通常用于 {@link cn.icframework.mybatis.mapper.BasicMapper#updateByIdWithNull(Object)}。
      * 
      *
      * @param params  参数 Map，需包含 key=IcParamsConsts.PARAMETER_ENTITY，value=实体对象
@@ -132,7 +132,7 @@ public class SqlProvider {
     /**
      * 构建根据条件更新的 SQL 语句（忽略 null 字段）。
      * <p>
-     * 适用于根据条件批量更新，忽略为 null 的字段，通常用于 {@link BasicMapper#update(Object, SqlWrapper)}。
+     * 适用于根据条件批量更新，忽略为 null 的字段，通常用于 {@link cn.icframework.mybatis.mapper.BasicMapper#update(Object, SqlWrapper)}。
      * 方法内部会自动注入逻辑删除字段。
      * 
      *
@@ -152,7 +152,7 @@ public class SqlProvider {
     /**
      * 通过 SqlWrapper 构建条件更新 SQL 语句（忽略 null 字段）。
      * <p>
-     * 适用于自定义条件更新，通常用于 {@link BasicMapper#update(Object, SqlWrapper)}。
+     * 适用于自定义条件更新，通常用于 {@link cn.icframework.mybatis.mapper.BasicMapper#update(Object, SqlWrapper)}。
      * 方法内部会自动注入逻辑删除字段。
      * 
      *
@@ -174,7 +174,7 @@ public class SqlProvider {
     /**
      * 构建根据条件更新的 SQL 语句（包含 null 字段）。
      * <p>
-     * 适用于根据条件批量更新，null 字段也会被更新，通常用于 {@link BasicMapper#updateWithNull(Object, SqlWrapper)}。
+     * 适用于根据条件批量更新，null 字段也会被更新，通常用于 {@link cn.icframework.mybatis.mapper.BasicMapper#updateWithNull(Object, SqlWrapper)}。
      * 方法内部会自动注入逻辑删除字段。
      * 
      *
@@ -195,7 +195,7 @@ public class SqlProvider {
     /**
      * 构建根据主键查询单条记录的 SQL 语句。
      * <p>
-     * 适用于根据主键查询单条记录，通常用于 {@link BasicMapper#selectById(Serializable)}。
+     * 适用于根据主键查询单条记录，通常用于 {@link cn.icframework.mybatis.mapper.BasicMapper#selectById(Serializable)}。
      * 方法内部会自动注入逻辑删除字段。
      * 
      *
@@ -212,7 +212,7 @@ public class SqlProvider {
     /**
      * 构建根据主键集合批量查询的 SQL 语句。
      * <p>
-     * 适用于根据主键集合批量查询，通常用于 {@link BasicMapper#selectByIds(Collection)}。
+     * 适用于根据主键集合批量查询，通常用于 {@link cn.icframework.mybatis.mapper.BasicMapper#selectByIds(Collection)}。
      * 方法内部会自动注入逻辑删除字段。
      * 
      *
@@ -232,7 +232,7 @@ public class SqlProvider {
 //     * @param params
 //     * @param context
 //     * @return sql
-//     * @see BasicMapper#selectOneByEntityId(Object)
+//     * @see cn.icframework.mybatis.mapper.BasicMapper#selectOneByEntityId(Object)
 //     */
 //    public static String selectOneByEntityId(Map<String, Object> params, ProviderContext context) {
 //        // 不管用不用先放逻辑删除字段进去
@@ -244,7 +244,7 @@ public class SqlProvider {
     /**
      * 构建根据主键集合批量删除的 SQL 语句。
      * <p>
-     * 适用于根据主键集合批量删除，通常用于 {@link BasicMapper#deleteByIds(Collection)}。
+     * 适用于根据主键集合批量删除，通常用于 {@link cn.icframework.mybatis.mapper.BasicMapper#deleteByIds(Collection)}。
      * 方法内部会自动注入逻辑删除字段。
      * 
      *
@@ -261,7 +261,7 @@ public class SqlProvider {
     /**
      * 构建根据主键删除的 SQL 语句。
      * <p>
-     * 适用于根据主键删除单条记录，通常用于 {@link BasicMapper#deleteById(Serializable)}。
+     * 适用于根据主键删除单条记录，通常用于 {@link cn.icframework.mybatis.mapper.BasicMapper#deleteById(Serializable)}。
      * 方法内部会自动注入逻辑删除字段。
      * 
      *
@@ -281,7 +281,7 @@ public class SqlProvider {
 //     * @param params
 //     * @param context
 //     * @return sql
-//     * @see BasicMapper#deleteByEntityId(Object)
+//     * @see cn.icframework.mybatis.mapper.BasicMapper#deleteByEntityId(Object)
 //     */
 //    public static String deleteByEntityId(Map<String, Object> params, ProviderContext context) {
 //        Object entity = params.get(IcParamsConsts.PARAMETER_ENTITY);
@@ -291,7 +291,7 @@ public class SqlProvider {
     /**
      * 构建根据条件统计数量的 SQL 语句。
      * <p>
-     * 适用于根据条件统计记录数，通常用于 {@link BasicMapper#count(SqlWrapper)}。
+     * 适用于根据条件统计记录数，通常用于 {@link cn.icframework.mybatis.mapper.BasicMapper#count(SqlWrapper)}。
      * 
      *
      * @param params  参数 Map，需包含 key=IcParamsConsts.PARAMETER_SW，value=SqlWrapper
@@ -307,7 +307,7 @@ public class SqlProvider {
     /**
      * 构建分页统计数量的 SQL 语句。
      * <p>
-     * 适用于分页场景下的总数统计，通常用于 {@link BasicMapper#countPage(SqlWrapper)}。
+     * 适用于分页场景下的总数统计，通常用于 {@link cn.icframework.mybatis.mapper.BasicMapper#countPage(SqlWrapper)}。
      * 
      *
      * @param params  参数 Map，需包含 key=IcParamsConsts.PARAMETER_SW，value=SqlWrapper
@@ -324,7 +324,7 @@ public class SqlProvider {
     /**
      * 构建根据条件查询多条记录的 SQL 语句。
      * <p>
-     * 适用于根据条件查询多条记录，通常用于 {@link BasicMapper#selectMap(SqlWrapper)}。
+     * 适用于根据条件查询多条记录，通常用于 {@link cn.icframework.mybatis.mapper.BasicMapper#selectMap(SqlWrapper)}。
      * 
      *
      * @param params  参数 Map，需包含 key=IcParamsConsts.PARAMETER_SW，value=SqlWrapper
@@ -339,7 +339,7 @@ public class SqlProvider {
     /**
      * 构建根据条件查询单条记录的 SQL 语句。
      * <p>
-     * 适用于根据条件查询单条记录，通常用于 {@link BasicMapper#selectOneMap(SqlWrapper)}。
+     * 适用于根据条件查询单条记录，通常用于 {@link cn.icframework.mybatis.mapper.BasicMapper#selectOneMap(SqlWrapper)}。
      * 
      *
      * @param params  参数 Map，需包含 key=IcParamsConsts.PARAMETER_SW，value=SqlWrapper
@@ -357,7 +357,7 @@ public class SqlProvider {
     /**
      * 构建根据条件删除的 SQL 语句。
      * <p>
-     * 适用于根据条件批量删除，通常用于 {@link BasicMapper#delete(SqlWrapper)}。
+     * 适用于根据条件批量删除，通常用于 {@link cn.icframework.mybatis.mapper.BasicMapper#delete(SqlWrapper)}。
      * 方法内部会自动注入逻辑删除字段。
      * 
      *

@@ -24,8 +24,8 @@
         </dependency>
         <!--json工具-->
         <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
+            <groupId>com.alibaba.fastjson2</groupId>
+            <artifactId>fastjson2</artifactId>
         </dependency>
         <!-- web 功能 -->
         <dependency>

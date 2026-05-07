@@ -2,7 +2,6 @@ package cn.icframework.core;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
-import org.springframework.stereotype.Component;
 
 /**
  * IC Framework 启动器。
@@ -12,7 +11,6 @@ import org.springframework.stereotype.Component;
  * @author hzl
  * @since 2023/5/27 0027
  */
-@Component
 @Order(1)
 public class IcFrameworkStarter implements CommandLineRunner {
 

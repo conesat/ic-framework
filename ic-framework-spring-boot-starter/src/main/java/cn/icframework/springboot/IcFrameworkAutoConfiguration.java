@@ -11,6 +11,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * IC Framework Spring Boot Starter 主自动配置类
@@ -24,6 +26,8 @@ import org.springframework.context.annotation.Import;
  * @since 2024/12/19
  */
 @Configuration
+@EnableCaching
+@EnableScheduling
 @ConditionalOnProperty(name = "ic.framework.enabled", havingValue = "true", matchIfMissing = true)
 @Import({
         IcAuthAutoConfiguration.class,

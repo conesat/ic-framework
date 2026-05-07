@@ -4,7 +4,6 @@ import cn.icframework.mybatis.annotation.*;
 import cn.icframework.mybatis.consts.IcParamsConsts;
 import cn.icframework.mybatis.parse.TableFieldInfo;
 import cn.icframework.mybatis.consts.CompareEnum;
-import cn.icframework.mybatis.wrapper.SqlWrapper;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.util.Assert;
@@ -18,23 +17,18 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ModelClassUtils {
-
-
-    /**
-     * 构造多主键  where 条件
-     *
-     * @param field
-     * @param sql
-     */
-    public static void mutilateWhereKey(Table table, TableFieldInfo field, SqlWrapper sql) {
-        Id id = field.getId();
-        if (id != null) {
-            sql.WHERE(getTableColumnName(table, field.getField()) + CompareEnum.EQ.getKey(sql.isCoverXml()) + String.format("#{%s.%s}", IcParamsConsts.PARAMETER_ENTITY, field.getField().getName()));
-        }
-    }
+    // 缓存 Class 的方法和字段
+    private static final Map<String, Method> METHOD_CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, Field> FIELD_CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, Field> ID_FIELD_CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, Annotation> ANNOTATION_CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, Field> VERSION_CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, Field> LOGIC_DELETE_CACHE = new ConcurrentHashMap<>();
 
 
     /**
@@ -132,14 +126,23 @@ public class ModelClassUtils {
      * @param fieldName 需要查找的字段名
      */
     public static Field getDeclaredField(Class<?> clazz, String fieldName) {
-        while (clazz != null) {
-            Field[] declaredFields = clazz.getDeclaredFields();
+        String cacheKey = clazz.getName() + "#" + fieldName;
+        Field cached = FIELD_CACHE.get(cacheKey);
+        if (cached != null) {
+            return cached;
+        }
+
+        Class<?> current = clazz;
+        while (current != null) {
+            Field[] declaredFields = current.getDeclaredFields();
             for (Field declaredField : declaredFields) {
                 if (fieldName.equals(declaredField.getName())) {
+                    declaredField.setAccessible(true);
+                    FIELD_CACHE.put(cacheKey, declaredField);
                     return declaredField;
                 }
             }
-            clazz = clazz.getSuperclass();
+            current = current.getSuperclass();
         }
         return null;
     }
@@ -151,16 +154,31 @@ public class ModelClassUtils {
      * @param methodName 需要查找的字段名
      */
     public static Method getDeclaredMethod(Class<?> clazz, String methodName, Class<?>... args) {
-        while (clazz != null) {
-            Method[] declaredMethods = clazz.getDeclaredMethods();
+        StringBuilder sb = new StringBuilder(clazz.getName()).append("#").append(methodName);
+        if (args != null) {
+            for (Class<?> arg : args) {
+                sb.append(":").append(arg.getName());
+            }
+        }
+        String cacheKey = sb.toString();
+        Method cached = METHOD_CACHE.get(cacheKey);
+        if (cached != null) {
+            return cached;
+        }
+
+        Class<?> current = clazz;
+        while (current != null) {
+            Method[] declaredMethods = current.getDeclaredMethods();
             for (Method method : declaredMethods) {
                 if (methodName.equals(method.getName())
                         && arrayContentsEq(args, method.getParameterTypes())
                 ) {
+                    method.setAccessible(true);
+                    METHOD_CACHE.put(cacheKey, method);
                     return method;
                 }
             }
-            clazz = clazz.getSuperclass();
+            current = current.getSuperclass();
         }
         return null;
     }
@@ -172,17 +190,26 @@ public class ModelClassUtils {
      * @param fieldName 需要查找的字段名
      */
     public static Method getSetMethod(Class<?> clazz, String fieldName) {
+        String cacheKey = clazz.getName() + "#set#" + fieldName;
+        Method cached = METHOD_CACHE.get(cacheKey);
+        if (cached != null) {
+            return cached;
+        }
+
         String methodName = "set" + StringUtils.capitalize(fieldName);
-        while (clazz != null) {
-            Method[] declaredMethods = clazz.getDeclaredMethods();
+        Class<?> current = clazz;
+        while (current != null) {
+            Method[] declaredMethods = current.getDeclaredMethods();
             for (Method method : declaredMethods) {
                 if (methodName.equals(method.getName())
                         && method.getParameterTypes().length == 1
                 ) {
+                    method.setAccessible(true);
+                    METHOD_CACHE.put(cacheKey, method);
                     return method;
                 }
             }
-            clazz = clazz.getSuperclass();
+            current = current.getSuperclass();
         }
         return null;
     }
@@ -219,12 +246,13 @@ public class ModelClassUtils {
      */
     public static void handleAllDeclaredFields(Class<?> clazz, DeclaredFieldCallback declaredFieldCallback) {
         Set<String> fieldNames = new HashSet<>();
-        while (clazz != null) {
+        while (clazz != null && !clazz.getName().startsWith("java.") && !clazz.getName().startsWith("javax.")) {
             Field[] declaredFields = clazz.getDeclaredFields();
             for (Field declaredField : declaredFields) {
                 if (fieldNames.contains(declaredField.getName())) {
                     continue;
                 }
+                declaredField.setAccessible(true);
                 if (!declaredFieldCallback.callBack(declaredField)) {
                     return;
                 }
@@ -241,12 +269,20 @@ public class ModelClassUtils {
      * @param clazz 要检查的类
      */
     public static <T extends Annotation> T getDeclaredAnnotation(Class<?> clazz, Class<T> annotation) {
-        while (clazz != null) {
-            T declaredAnnotation = clazz.getDeclaredAnnotation(annotation);
+        String cacheKey = clazz.getName() + "@" + annotation.getName();
+        Annotation cached = ANNOTATION_CACHE.get(cacheKey);
+        if (cached != null) {
+            return (T) cached;
+        }
+
+        Class<?> current = clazz;
+        while (current != null) {
+            T declaredAnnotation = current.getDeclaredAnnotation(annotation);
             if (declaredAnnotation != null) {
+                ANNOTATION_CACHE.put(cacheKey, declaredAnnotation);
                 return declaredAnnotation;
             }
-            clazz = clazz.getSuperclass();
+            current = current.getSuperclass();
         }
         return null;
     }
@@ -296,15 +332,24 @@ public class ModelClassUtils {
      * @param clazz 实体类
      */
     public static Field getIdField(Class<?> clazz) {
-        while (clazz != null) {
-            Field[] declaredFields = clazz.getDeclaredFields();
+        String cacheKey = clazz.getName();
+        Field cached = ID_FIELD_CACHE.get(cacheKey);
+        if (cached != null) {
+            return cached;
+        }
+
+        Class<?> current = clazz;
+        while (current != null) {
+            Field[] declaredFields = current.getDeclaredFields();
             for (Field field : declaredFields) {
                 Id id = field.getDeclaredAnnotation(Id.class);
                 if (id != null) {
+                    field.setAccessible(true);
+                    ID_FIELD_CACHE.put(cacheKey, field);
                     return field;
                 }
             }
-            clazz = clazz.getSuperclass();
+            current = current.getSuperclass();
         }
         return null;
     }
@@ -337,15 +382,24 @@ public class ModelClassUtils {
      * @return
      */
     public static Field getLogicDelete(Class<?> clazz) {
-        while (clazz != null) {
-            Field[] declaredFields = clazz.getDeclaredFields();
+        String cacheKey = clazz.getName();
+        Field cached = LOGIC_DELETE_CACHE.get(cacheKey);
+        if (cached != null) {
+            return cached;
+        }
+
+        Class<?> current = clazz;
+        while (current != null) {
+            Field[] declaredFields = current.getDeclaredFields();
             for (Field field : declaredFields) {
                 LogicDelete tableField = field.getDeclaredAnnotation(LogicDelete.class);
                 if (tableField != null) {
+                    field.setAccessible(true);
+                    LOGIC_DELETE_CACHE.put(cacheKey, field);
                     return field;
                 }
             }
-            clazz = clazz.getSuperclass();
+            current = current.getSuperclass();
         }
         return null;
     }
@@ -357,15 +411,24 @@ public class ModelClassUtils {
      * @return
      */
     public static Field getVersion(Class<?> clazz) {
-        while (clazz != null) {
-            Field[] declaredFields = clazz.getDeclaredFields();
+        String cacheKey = clazz.getName();
+        Field cached = VERSION_CACHE.get(cacheKey);
+        if (cached != null) {
+            return cached;
+        }
+
+        Class<?> current = clazz;
+        while (current != null) {
+            Field[] declaredFields = current.getDeclaredFields();
             for (Field field : declaredFields) {
                 Version tableField = field.getDeclaredAnnotation(Version.class);
                 if (tableField != null) {
+                    field.setAccessible(true);
+                    VERSION_CACHE.put(cacheKey, field);
                     return field;
                 }
             }
-            clazz = clazz.getSuperclass();
+            current = current.getSuperclass();
         }
         return null;
     }
@@ -392,7 +455,7 @@ public class ModelClassUtils {
                     continue;
                 }
                 TableFieldInfo tableFieldInfo = new TableFieldInfo();
-                tableFieldInfo.setTableColumnName(tableField == null || org.apache.commons.lang3.StringUtils.isEmpty(tableField.value()) ? field.getName() : tableField.value());
+                tableFieldInfo.setTableColumnName(tableField == null || !StringUtils.hasLength(tableField.value()) ? field.getName() : tableField.value());
                 tableFieldInfo.setTableField(tableField);
                 tableFieldInfo.setId(id);
                 tableFieldInfo.setVersion(version);

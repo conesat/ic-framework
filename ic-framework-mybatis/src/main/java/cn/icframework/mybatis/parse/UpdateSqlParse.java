@@ -1,9 +1,11 @@
 package cn.icframework.mybatis.parse;
 
+import cn.icframework.mybatis.annotation.Id;
 import cn.icframework.mybatis.annotation.Table;
-import cn.icframework.mybatis.annotation.Version;
+import cn.icframework.mybatis.consts.CompareEnum;
 import cn.icframework.mybatis.consts.IcParamsConsts;
 import cn.icframework.mybatis.consts.StatementType;
+import cn.icframework.mybatis.parse.TableFieldInfo;
 import cn.icframework.mybatis.utils.ModelClassUtils;
 import cn.icframework.mybatis.wrapper.UpdateWrapper;
 
@@ -31,10 +33,22 @@ public class UpdateSqlParse implements ISqlParse {
         Table table = entity.getClass().getAnnotation(Table.class);
         ModelClassUtils.handleTableFieldInfo(entity.getClass(), field -> {
             SqlParseUtils.handlerUpdateSet(entity, withNull, field, updateWrapper);
-            ModelClassUtils.mutilateWhereKey(table, field, updateWrapper);
+            mutilateWhereKey(table, field, updateWrapper);
             return true;
         });
         return updateWrapper.sql();
+    }
+
+    /**
+     * 构造多主键 where 条件
+     */
+    private void mutilateWhereKey(Table table, TableFieldInfo field, UpdateWrapper sql) {
+        Id id = field.getId();
+        if (id != null) {
+            sql.WHERE(ModelClassUtils.getTableColumnName(table, field.getField()) +
+                    CompareEnum.EQ.getKey(sql.isCoverXml()) +
+                    String.format("#{%s.%s}", IcParamsConsts.PARAMETER_ENTITY, field.getField().getName()));
+        }
     }
 
     /**
@@ -132,4 +146,4 @@ public class UpdateSqlParse implements ISqlParse {
     public String parseDeleteById(Class<?> mapperType) {
         throw new UnsupportedOperationException();
     }
-} 
+}

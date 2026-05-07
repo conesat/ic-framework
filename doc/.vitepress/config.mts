@@ -63,6 +63,19 @@ export default defineConfig({
                     { text: '结果映射', link: '/docs/ic-mybatis/query-as' },
                     { text: '插入', link: '/docs/ic-mybatis/insert' },
                     { text: '更新', link: '/docs/ic-mybatis/update' },
+                    { text: '删除', link: '/docs/ic-mybatis/delete' },
+                ]
+            },
+            {
+                text: '权限 (Auth)',
+                items: [
+                    { text: '基本说明', link: '/docs/auth/auth' },
+                ]
+            },
+            {
+                text: '缓存 (Cache)',
+                items: [
+                    { text: '基本说明', link: '/docs/cache/cache' },
                 ]
             },
             {
@@ -70,6 +83,19 @@ export default defineConfig({
                 items: [
                     { text: '配置', link: '/docs/dber/config' },
                     { text: '使用', link: '/docs/dber/dber' },
+                ]
+            },
+            {
+                text: '代码生成 (Gen)',
+                items: [
+                    { text: '基本说明', link: '/docs/gen/gen' },
+                ]
+            },
+            {
+                text: '核心与工具',
+                items: [
+                    { text: '基础核心 (Core)', link: '/docs/core/core' },
+                    { text: '通用工具 (Common)', link: '/docs/common/utils' },
                 ]
             }
         ],

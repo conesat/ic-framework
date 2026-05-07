@@ -18,6 +18,7 @@
         <module>ic-framework-auth</module>
         <module>ic-framework-cache</module>
         <module>ic-framework-core</module>
+        <module>ic-framework-monitor</module>
         <module>ic-framework-gen</module>
         <module>ic-framework-gen-template</module>
         <module>ic-framework-mybatis</module>

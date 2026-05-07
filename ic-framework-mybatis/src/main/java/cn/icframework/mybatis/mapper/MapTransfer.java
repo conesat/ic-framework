@@ -68,9 +68,9 @@ public class MapTransfer {
      */
     @SuppressWarnings("unchecked")
     static <T> Class<T> getMapperTypeClass(BasicMapper<T> basicMapper) {
-        return (Class<T>) ((ParameterizedType) (basicMapper.getClass().getInterfaces()[0]).getGenericInterfaces()[0]).getActualTypeArguments()[0];
+        return (Class<T>) ((ParameterizedType) (basicMapper.getClass().getInterfaces()[0]).getGenericInterfaces()[0])
+                .getActualTypeArguments()[0];
     }
-
 
     static <R, T> R handleResultMap(Class<R> rType, BasicMapper<T> basicMapper, Map<String, Object> map) {
         List<R> rs = handleResultMap(rType, basicMapper, Collections.singletonList(map));
@@ -88,7 +88,8 @@ public class MapTransfer {
      * @param maps        查询结果Map
      * @return 转换后的对象
      */
-    public static <R, T> List<R> handleResultMap(Class<R> rType, BasicMapper<T> basicMapper, List<Map<String, Object>> maps) {
+    public static <R, T> List<R> handleResultMap(Class<R> rType, BasicMapper<T> basicMapper,
+            List<Map<String, Object>> maps) {
         return handleResultMap(rType, basicMapper, maps, false);
     }
 
@@ -99,13 +100,20 @@ public class MapTransfer {
         Map<String, RelationResult> collectionGroupIdMap;
         Map<String, RelationResult> associationMap;
         Map<String, RelationGroup> relationTableMap;
-        Field[] fields;
     }
 
     /**
      * 主流程重构：注解解析、数据映射、关联处理分离
      */
-    public static <R, T> List<R> handleResultMap(Class<R> rType, BasicMapper<T> basicMapper, List<Map<String, Object>> maps, boolean skipRelation) {
+    public static <R, T> List<R> handleResultMap(Class<R> rType, BasicMapper<T> basicMapper,
+            List<Map<String, Object>> maps, boolean skipRelation) {
+        if (ModelClassUtils.isDefaultType(rType)) {
+            List<R> rs = new ArrayList<>();
+            for (Map<String, Object> map : maps) {
+                rs.add(handleResultMap(rType, basicMapper, map, null, null));
+            }
+            return rs;
+        }
         // 1. 解析注解
         AnnotationContext context = parseFieldAnnotations(rType, skipRelation);
         // 2. 分批并发处理
@@ -147,15 +155,18 @@ public class MapTransfer {
     /**
      * 普通字段和关联对象的映射
      */
-    private static <R, T> R mapToEntity(Class<R> rType, BasicMapper<T> basicMapper, Map<String, Object> map, AnnotationContext context) {
+    private static <R, T> R mapToEntity(Class<R> rType, BasicMapper<T> basicMapper, Map<String, Object> map,
+            AnnotationContext context) {
         return handleResultMap(rType, basicMapper, map, context.associationMap, context.relationTableMap);
     }
 
     /**
      * 集合注解的映射
      */
-    private static <R, T> R mapToCollectionEntity(Class<R> rType, BasicMapper<T> basicMapper, Map<String, Object> map, AnnotationContext context, Map<Object, Map<String, List<Object>>> collectionGroupMap) {
-        return handleResultMap(rType, basicMapper, map, context.collectionGroupIdMap, collectionGroupMap, context.relationTableMap);
+    private static <R, T> R mapToCollectionEntity(Class<R> rType, BasicMapper<T> basicMapper, Map<String, Object> map,
+            AnnotationContext context, Map<Object, Map<String, List<Object>>> collectionGroupMap) {
+        return handleResultMap(rType, basicMapper, map, context.collectionGroupIdMap, collectionGroupMap,
+                context.relationTableMap);
     }
 
     /**
@@ -164,21 +175,26 @@ public class MapTransfer {
     private static <R> AnnotationContext parseFieldAnnotations(Class<R> rType, boolean skipRelation) {
         AnnotationContext context = new AnnotationContext();
         Field[] fields = rType.getDeclaredFields();
-        context.fields = fields;
         context.collectionGroupIdMap = new HashMap<>();
         context.associationMap = new HashMap<>();
         context.relationTableMap = new HashMap<>();
+
         for (Field field : fields) {
-            if (parseCollectionAnnotation(rType, field, context)) continue;
-            if (parseAssociationAnnotation(field, context)) continue;
+            if (parseCollectionAnnotation(rType, field, context))
+                continue;
+            if (parseAssociationAnnotation(field, context))
+                continue;
             if (RelationHelper.getRelationQuery() && !skipRelation) {
                 parseJoinAnnotations(rType, field, context);
             }
         }
         // 兼容旧逻辑：如无内容则置为null
-        if (context.collectionGroupIdMap.isEmpty()) context.collectionGroupIdMap = null;
-        if (context.associationMap.isEmpty()) context.associationMap = null;
-        if (context.relationTableMap.isEmpty()) context.relationTableMap = null;
+        if (context.collectionGroupIdMap.isEmpty())
+            context.collectionGroupIdMap = null;
+        if (context.associationMap.isEmpty())
+            context.associationMap = null;
+        if (context.relationTableMap.isEmpty())
+            context.relationTableMap = null;
         return context;
     }
 
@@ -187,7 +203,8 @@ public class MapTransfer {
      */
     private static <R> boolean parseCollectionAnnotation(Class<R> rType, Field field, AnnotationContext context) {
         Collection collection = field.getDeclaredAnnotation(Collection.class);
-        if (collection == null) return false;
+        if (collection == null)
+            return false;
         boolean isList = List.class.isAssignableFrom(field.getType());
         Assert.isTrue(isList, rType.getName() + "::" + field.getName() + " 解析异常：Collection注解只适用List");
         boolean autoFit = !StringUtils.hasLength(collection.prefix());
@@ -203,7 +220,8 @@ public class MapTransfer {
      */
     private static boolean parseAssociationAnnotation(Field field, AnnotationContext context) {
         Association association = field.getDeclaredAnnotation(Association.class);
-        if (association == null) return false;
+        if (association == null)
+            return false;
         String prefix = StringUtils.hasLength(association.prefix()) ? association.prefix() : field.getName();
         context.associationMap.put(prefix, new RelationResult(null, field.getName(), field.getType(), false, null));
         return true;
@@ -227,7 +245,8 @@ public class MapTransfer {
             }
             joinList.add(joinAnnotation);
         }
-        if (joinList.isEmpty()) return;
+        if (joinList.isEmpty())
+            return;
         List<RelationJoinInfo> relationJoinInfos = new ArrayList<>();
         Class<?> fieldType = field.getType();
         if (List.class.isAssignableFrom(fieldType)) {
@@ -263,7 +282,8 @@ public class MapTransfer {
             relationJoinInfo.setOrderBy(join.orderBy());
             relationJoinInfos.add(relationJoinInfo);
         }
-        context.relationTableMap = fitRelationJoin(rType, field, context.relationTableMap, relationJoinInfos, skipChildRelation);
+        context.relationTableMap = fitRelationJoin(rType, field, context.relationTableMap, relationJoinInfos,
+                skipChildRelation);
     }
 
     /**
@@ -272,22 +292,28 @@ public class MapTransfer {
      * 关联查询需要获取user的roles，和用户部门dep
      * 1. 获取user的id，userIdList = list.map(User::getId).collect(Collectors.toSet())
      * 2. 用userIdList查询userRole：
-     * select r.*,ur.userId from user_role ur left join role r on r.id = ur.roleId where ur.userId in (userIdList)
+     * select r.*,ur.userId from user_role ur left join role r on r.id = ur.roleId
+     * where ur.userId in (userIdList)
      * 获取到roleList = [{id:1,name:"管理员",userId:1},{id:1,name:"普通用户",userId:2}]
      * 3. 用userIdList查询userDep：
-     * select d.*,ud.userId from user_dep ud left join dep d on d.id = ud.depId where ud.userId in (userIdList)
+     * select d.*,ud.userId from user_dep ud left join dep d on d.id = ud.depId
+     * where ud.userId in (userIdList)
      * 获取到depList = [{id:1,name:"技术部",userId:1},{id:2,name:"运营部",userId:2}]
      * 4. 将depList和roleList根据userId分组，得到map
-     * Map<Long, List<Map<String,Object>>> roleGroupMap = roleList.stream().collect(Collectors.groupingBy(map->map.get("userId")));
-     * Map<Long, List<Map<String,Object>>> depGroupMap = depList.stream().collect(Collectors.groupingBy(map->map.get("userId")));
+     * Map<Long, List<Map<String,Object>>> roleGroupMap =
+     * roleList.stream().collect(Collectors.groupingBy(map->map.get("userId")));
+     * Map<Long, List<Map<String,Object>>> depGroupMap =
+     * depList.stream().collect(Collectors.groupingBy(map->map.get("userId")));
      * 4. 遍历rs，给每个user对象设置roles和dep
      * for(R r:rs){
      * r.setRoles(roleGroupMap.get(r.userId));
      * r.setDeps(depGroupMap.get(r.userId));
      * }
      */
-    private static <R, T> void handleRelation(BasicMapper<T> basicMapper, Map<String, RelationGroup> relationTableMap, List<R> rs) {
-        if (relationTableMap == null) return;
+    private static <R, T> void handleRelation(BasicMapper<T> basicMapper, Map<String, RelationGroup> relationTableMap,
+            List<R> rs) {
+        if (relationTableMap == null)
+            return;
         // 1. 异步批量查询
         doRelationAsyncQuery(basicMapper, relationTableMap);
         // 2. 结果分发赋值
@@ -297,11 +323,14 @@ public class MapTransfer {
     /**
      * 异步批量查询所有关联关系
      */
-    private static <T> void doRelationAsyncQuery(BasicMapper<T> basicMapper, Map<String, RelationGroup> relationTableMap) {
-        if (relationTableMap == null || relationTableMap.isEmpty()) return;
+    private static <T> void doRelationAsyncQuery(BasicMapper<T> basicMapper,
+            Map<String, RelationGroup> relationTableMap) {
+        if (relationTableMap == null || relationTableMap.isEmpty())
+            return;
 
         for (RelationGroup relationGroup : relationTableMap.values()) {
-            if (relationGroup.getColumnDataList().isEmpty()) continue;
+            if (relationGroup.getColumnDataList().isEmpty())
+                continue;
 
             // 构建所有异步任务
             List<CompletableFuture<Void>> futures = new ArrayList<>();
@@ -322,7 +351,8 @@ public class MapTransfer {
     /**
      * 构建单个关联查询的异步任务
      */
-    private static <T> CompletableFuture<Void> buildRelationQueryTask(BasicMapper<T> basicMapper, RelationGroup relationGroup, Relation relation) {
+    private static <T> CompletableFuture<Void> buildRelationQueryTask(BasicMapper<T> basicMapper,
+            RelationGroup relationGroup, Relation relation) {
         return CompletableFuture.runAsync(() -> {
             try {
                 RelationJoinInfo relationJoinInfoFirst = relation.relationJoinInfos.getFirst();
@@ -330,9 +360,11 @@ public class MapTransfer {
                 Table table = joinTable.getAnnotation(Table.class);
                 Field field = ModelClassUtils.getDeclaredField(joinTable, relationJoinInfoFirst.getJoinTableField());
                 QueryTable<?> beforeQueryTable = new QueryTable<>(relationJoinInfoFirst.getJoinTable());
+                String tableColumnName = ModelClassUtils.getTableColumnName(table, field);
+                Assert.notNull(tableColumnName, "Table column name cannot be null");
                 QueryField<?> whereQueryField = new QueryField<>(new QueryTable<>(relationJoinInfoFirst.getJoinTable()),
-                        ModelClassUtils.getTableColumnName(table, field));
-                whereQueryField.as(RELATION_FIELD_PREFIX + relationJoinInfoFirst.selfField);
+                        tableColumnName);
+                whereQueryField.as(RELATION_FIELD_PREFIX + relationJoinInfoFirst.getSelfField());
                 RelationJoinInfo lastJoinInfo = relation.relationJoinInfos.getLast();
                 Class<?> resultType = lastJoinInfo.getJoinTable();
                 FromWrapper fromWrapper;
@@ -357,17 +389,24 @@ public class MapTransfer {
                     Class<?> entityType = relationJoinInfo.getJoinTable();
                     Table jTable = entityType.getAnnotation(Table.class);
                     QueryTable<?> queryTable = new QueryTable<>(entityType);
-                    Field joinField = ModelClassUtils.getDeclaredField(entityType, relationJoinInfo.getJoinTableField());
+                    Field joinField = ModelClassUtils.getDeclaredField(entityType,
+                            relationJoinInfo.getJoinTableField());
                     if (joinField == null) {
-                        throw new RuntimeException(resultType.getName() + "Join注解有误" + entityType.getName() + "类不存在" + relationJoinInfo.getJoinTableField() + "字段，请填写java类字段");
+                        throw new RuntimeException(resultType.getName() + "Join注解有误" + entityType.getName() + "类不存在"
+                                + relationJoinInfo.getJoinTableField() + "字段，请填写java类字段");
                     }
-                    QueryField<?> queryField = new QueryField<>(queryTable, ModelClassUtils.getTableColumnName(jTable, joinField));
-                    Field selfField = ModelClassUtils.getDeclaredField(relationJoinInfo.getSelfTable(), relationJoinInfo.getSelfField());
+                    QueryField<?> queryField = new QueryField<>(queryTable,
+                            ModelClassUtils.getTableColumnName(jTable, joinField));
+                    Field selfField = ModelClassUtils.getDeclaredField(relationJoinInfo.getSelfTable(),
+                            relationJoinInfo.getSelfField());
                     Table sTable = relationJoinInfo.getSelfTable().getAnnotation(Table.class);
                     if (selfField == null) {
-                        throw new RuntimeException(resultType.getName() + "Join注解有误" + relationJoinInfo.getSelfTable().getName() + "类不存在" + relationJoinInfo.getSelfField() + "字段，请填写java类字段");
+                        throw new RuntimeException(
+                                resultType.getName() + "Join注解有误" + relationJoinInfo.getSelfTable().getName() + "类不存在"
+                                        + relationJoinInfo.getSelfField() + "字段，请填写java类字段");
                     }
-                    QueryField<?> joinQueryField = new QueryField<>(beforeQueryTable, ModelClassUtils.getTableColumnName(sTable, selfField));
+                    QueryField<?> joinQueryField = new QueryField<>(beforeQueryTable,
+                            ModelClassUtils.getTableColumnName(sTable, selfField));
                     fromWrapper.LEFT_JOIN(queryTable).ON(queryField.eq(joinQueryField));
                     if (org.springframework.util.StringUtils.hasLength(relationJoinInfo.where)) {
                         wheres.add(relationJoinInfo.where);
@@ -387,9 +426,10 @@ public class MapTransfer {
                 List<Map<String, Object>> maps = basicMapper.selectMap(sql);
                 if (maps != null) {
                     relation.dataMap = new HashMap<>();
-                    Map<Object, List<Map<String, Object>>> listMap = maps.stream().collect(java.util.stream.Collectors.groupingBy(data ->
-                            data.get(whereQueryField.getAsName())));
-                    listMap.forEach((mapKey, value) -> relation.dataMap.put(mapKey, handleResultMap(relation.type, basicMapper, value, relation.isSkipRelation())));
+                    Map<Object, List<Map<String, Object>>> listMap = maps.stream().collect(
+                            java.util.stream.Collectors.groupingBy(data -> data.get(whereQueryField.getAsName())));
+                    listMap.forEach((mapKey, value) -> relation.dataMap.put(mapKey,
+                            handleResultMap(relation.type, basicMapper, value, relation.isSkipRelation())));
                 }
             } catch (Exception ex) {
                 log.error("关联查询异步任务异常: {}", ex.getMessage(), ex);
@@ -402,7 +442,8 @@ public class MapTransfer {
      * 将查询结果分发赋值到实体对象
      */
     private static <R> void assignRelationResultToEntity(List<R> rs, Map<String, RelationGroup> relationTableMap) {
-        if (rs == null || rs.isEmpty() || relationTableMap == null) return;
+        if (rs == null || rs.isEmpty() || relationTableMap == null)
+            return;
 
         // 预处理：合并所有Relation为一个列表，减少循环层级
         List<Relation> allRelations = new ArrayList<>();
@@ -411,9 +452,11 @@ public class MapTransfer {
         }
 
         for (R r : rs) {
-            if (r == null) continue;
+            if (r == null)
+                continue;
             for (Relation relation : allRelations) {
-                if (relation.getDataMap() == null) continue;
+                if (relation.getDataMap() == null)
+                    continue;
                 Method fieldSetMethod = relation.getFieldSetMethod();
                 Method relationColumnFieldGetMethod = relation.getRelationColumnFieldGetMethod();
                 try {
@@ -442,9 +485,9 @@ public class MapTransfer {
      * @return 更新后的关联关系映射
      */
     private static <R> Map<String, RelationGroup> fitRelationJoin(Class<R> rType, Field field,
-                                                                  Map<String, RelationGroup> relationTableMap,
-                                                                  List<RelationJoinInfo> relationJoinInfos,
-                                                                  boolean skipRelation) {
+            Map<String, RelationGroup> relationTableMap,
+            List<RelationJoinInfo> relationJoinInfos,
+            boolean skipRelation) {
         if (CollectionUtils.isEmpty(relationJoinInfos)) {
             return relationTableMap;
         }
@@ -462,9 +505,16 @@ public class MapTransfer {
         String selfField = relationJoinInfos.getFirst().getSelfField();
         try {
             // 保存映射关系
+            String capitalizedFieldName = StringUtils.capitalize(field.getName());
+            String capitalizedSelfField = StringUtils.capitalize(selfField);
+            java.util.Objects.requireNonNull(capitalizedFieldName);
+            java.util.Objects.requireNonNull(capitalizedSelfField);
+
+            String setMethodName = "set" + capitalizedFieldName;
+            String getMethodName = "get" + capitalizedSelfField;
             Relation relation = new Relation(relationJoinInfos,
-                    rType.getMethod("set" + StringUtils.capitalize(field.getName()), field.getType()),
-                    rType.getMethod("get" + StringUtils.capitalize(selfField)),
+                    rType.getMethod(setMethodName, field.getType()),
+                    rType.getMethod(getMethodName),
                     type,
                     isList,
                     skipRelation);
@@ -484,13 +534,12 @@ public class MapTransfer {
         return relationTableMap;
     }
 
-
     @SuppressWarnings("unchecked")
     static <R, T> R handleResultMap(Class<R> rType,
-                                    BasicMapper<T> basicMapper,
-                                    Map<String, Object> map,
-                                    Map<String, RelationResult> associationMap,
-                                    Map<String, RelationGroup> relationMap) {
+            BasicMapper<T> basicMapper,
+            Map<String, Object> map,
+            Map<String, RelationResult> associationMap,
+            Map<String, RelationGroup> relationMap) {
         if (isDefaultType(rType)) {
             if (map == null) {
                 return null;
@@ -527,7 +576,8 @@ public class MapTransfer {
             // 判断嵌套的是不是一个对象
             if (map.get(key).getClass().isAssignableFrom(HashMap.class)) {
                 if (associationMap != null && associationMap.containsKey(key)) {
-                    Object object = handleResultMap(associationMap.get(key).getType(), basicMapper, (Map<String, Object>) map.get(key));
+                    Object object = handleResultMap(associationMap.get(key).getType(), basicMapper,
+                            (Map<String, Object>) map.get(key));
                     ReflectUtils.setValue(r, setMethod, object);
                     continue;
                 }
@@ -541,10 +591,14 @@ public class MapTransfer {
                     // 如果填写的是java字段，直接获取
                     relationMap.get(key).getColumnDataList().add(v);
                 } else {
-                    // 有的key是数据库字段，需要转换
-                    String uncapitalizeKey = StringUtils.uncapitalize(setMethod.getName().substring(METHOD_PREFIX_LEN));
-                    if (relationMap.get(uncapitalizeKey) != null) {
-                        relationMap.get(uncapitalizeKey).getColumnDataList().add(v);
+                    // 有和key是数据库字段，需要转换
+                    String methodName = setMethod.getName();
+                    String uncapitalizeKey = StringUtils.uncapitalize(methodName.substring(METHOD_PREFIX_LEN));
+                    if (uncapitalizeKey != null && relationMap.containsKey(uncapitalizeKey)) {
+                        RelationGroup group = relationMap.get(uncapitalizeKey);
+                        if (group != null) {
+                            group.getColumnDataList().add(v);
+                        }
                     }
                 }
             }
@@ -566,15 +620,17 @@ public class MapTransfer {
         Table table = rType.getAnnotation(Table.class);
         ModelClassUtils.handleAllDeclaredFields(rType, (field) -> {
             Method setMethod = ModelClassUtils.getSetMethod(rType, field.getName());
-            String tableFieldName = ModelClassUtils.getTableColumnName(table, field);
-            if (tableFieldName != null) {
-                finalSetMethodMap.put(ModelClassUtils.getTableName(rType) + "." + tableFieldName, setMethod);
-                finalSetMethodMap.put(tableFieldName, setMethod);
-            } else {
-                // 下划线也需要自动映射
-                finalSetMethodMap.put(FieldUtils.luCaseToUnderLine(field.getName()), setMethod);
+            if (setMethod != null) {
+                String tableFieldName = ModelClassUtils.getTableColumnName(table, field);
+                if (tableFieldName != null) {
+                    finalSetMethodMap.put(ModelClassUtils.getTableName(rType) + "." + tableFieldName, setMethod);
+                    finalSetMethodMap.put(tableFieldName, setMethod);
+                } else {
+                    // 下划线也需要自动映射
+                    finalSetMethodMap.put(FieldUtils.luCaseToUnderLine(field.getName()), setMethod);
+                }
+                finalSetMethodMap.put(field.getName(), setMethod);
             }
-            finalSetMethodMap.put(field.getName(), setMethod);
             return true;
         });
         lruMapTransferCache.put(rType, finalSetMethodMap);
@@ -619,7 +675,8 @@ public class MapTransfer {
             String key = entry.getKey();
             RelationResult relationResult = entry.getValue();
             Method setMethod = ModelClassUtils.getSetMethod(rType, relationResult.getFieldName());
-            if (setMethod == null) continue;
+            if (setMethod == null)
+                continue;
 
             Object groupKey = map.get(relationResult.getGroupId());
             if (groupKey == null) {
@@ -644,7 +701,8 @@ public class MapTransfer {
                 objectList.add(value);
             } else if (relationResult.isAutoFit()) {
                 if (StringUtils.hasLength(relationResult.getColumn())) {
-                    objectList.add(TypeConvertUtils.coverType(relationResult.getType(), map.get(relationResult.getColumn())));
+                    objectList.add(
+                            TypeConvertUtils.coverType(relationResult.getType(), map.get(relationResult.getColumn())));
                 } else {
                     Object obj = handleResultMap(relationResult.getType(), basicMapper, map);
                     objectList.add(obj);
@@ -658,7 +716,7 @@ public class MapTransfer {
         }
 
         // 3. 处理普通字段和关联字段
-        handleFields(r, rType, map, collectionMap, collectionGroupMap, relationMap);
+        handleFields(r, rType, map, collectionMap, collectionGroupMap, relationMap, getMapTransfer(rType));
 
         return r;
     }
@@ -673,21 +731,31 @@ public class MapTransfer {
             Map<String, Object> map,
             Map<String, RelationResult> collectionMap,
             Map<Object, Map<String, List<Object>>> collectionGroupMap,
-            Map<String, RelationGroup> relationMap) {
+            Map<String, RelationGroup> relationMap,
+            Map<String, Method> setterMethodMap) {
+
+        if (setterMethodMap == null) {
+            setterMethodMap = getMapTransfer(rType);
+        }
+
         Set<String> keySet = map.keySet();
         for (String key : keySet) {
             // 跳过集合字段
             if (collectionMap != null && collectionMap.containsKey(key)) {
                 continue;
             }
-            Method setMethod = ModelClassUtils.getSetMethod(rType, key);
+
+            Method setMethod = setterMethodMap.get(key);
             if (setMethod == null && key.contains("_")) {
-                setMethod = ModelClassUtils.getSetMethod(rType, FieldUtils.underLineToLUCase(key));
+                setMethod = setterMethodMap.get(FieldUtils.underLineToLUCase(key));
             }
             if (setMethod == null) {
                 continue;
             }
+
             Object v = map.get(key);
+            if (v == null)
+                continue;
 
             // 关联字段收集
             if (relationMap != null) {
@@ -695,16 +763,21 @@ public class MapTransfer {
                 if (group != null) {
                     group.getColumnDataList().add(v);
                 } else {
-                    String uncapitalizeKey = StringUtils.uncapitalize(setMethod.getName().substring(METHOD_PREFIX_LEN));
-                    group = relationMap.get(uncapitalizeKey);
-                    if (group != null) {
-                        group.getColumnDataList().add(v);
+                    String methodName = setMethod.getName();
+                    String uncapitalizeKey = StringUtils.uncapitalize(methodName.substring(METHOD_PREFIX_LEN));
+                    if (uncapitalizeKey != null && relationMap.containsKey(uncapitalizeKey)) {
+                        group = relationMap.get(uncapitalizeKey);
+                        if (group != null) {
+                            group.getColumnDataList().add(v);
+                        }
                     }
                 }
             }
 
             if (v instanceof Map) {
-                ReflectUtils.setValue(r, setMethod, handleFields((Class<Object>) ModelClassUtils.getDeclaredField(rType, key).getType(), (Map<String, Object>) v, collectionMap, collectionGroupMap, relationMap));
+                Class<?> fieldType = ModelClassUtils.getDeclaredField(rType, key).getType();
+                ReflectUtils.setValue(r, setMethod, handleFields(fieldType, (Map<String, Object>) v, collectionMap,
+                        collectionGroupMap, relationMap));
             } else {
                 ReflectUtils.setValue(r, setMethod, v);
             }
@@ -721,7 +794,7 @@ public class MapTransfer {
             Map<Object, Map<String, List<Object>>> collectionGroupMap,
             Map<String, RelationGroup> relationMap) {
         R r = ModelClassUtils.constructor(rType);
-        handleFields(r, rType, map, collectionMap, collectionGroupMap, relationMap);
+        handleFields(r, rType, map, collectionMap, collectionGroupMap, relationMap, null);
         return r;
     }
 
@@ -793,11 +866,11 @@ public class MapTransfer {
          * 提供关联数据的字段
          */
         public Relation(List<RelationJoinInfo> relationJoinInfos,
-                        Method fieldSetMethod,
-                        Method relationColumnFieldGetMethod,
-                        Class<?> type,
-                        boolean isList,
-                        boolean skipRelation) {
+                Method fieldSetMethod,
+                Method relationColumnFieldGetMethod,
+                Class<?> type,
+                boolean isList,
+                boolean skipRelation) {
             this.relationJoinInfos = relationJoinInfos;
             this.fieldSetMethod = fieldSetMethod;
             this.relationColumnFieldGetMethod = relationColumnFieldGetMethod;
@@ -806,7 +879,6 @@ public class MapTransfer {
             this.skipRelation = skipRelation;
         }
     }
-
 
     @Getter
     @Setter

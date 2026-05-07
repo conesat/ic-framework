@@ -26,7 +26,7 @@ SqlWrapper sqlWrapper =
                         .LIMIT(1)
                         .AS("dep")
         )
-        .FROM(table)
+        .FROM(userDef)
         .WHERE(userDef.id.eq(1));
 
 
@@ -34,7 +34,7 @@ SqlWrapper sqlWrapper =
  select * from user where id in (select user_id from user_dep where id = '123')
  */
 SqlWrapper sqlWrapper = SELECT()
-        .FROM(table)
+        .FROM(userDef)
         .WHERE(
                 userDef.id.in(
                         SELECT(userDepDef.userId)

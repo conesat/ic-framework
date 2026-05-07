@@ -1,38 +1,42 @@
-# 缓存体系说明（cache 模块）
+# 缓存体系说明（Cache 模块）
 
-## 1. 模块作用
+IC Framework 提供了一套统一的缓存抽象层，支持本地缓存（LoadingCache）和 Redis 缓存，并具备自动切换能力。
 
-- 提供统一缓存接口，支持本地缓存、Redis 缓存等多种实现
-- 支持缓存工具类、统一缓存服务
+## 核心接口：`ICacheService`
 
-## 2. 主要功能
+所有缓存操作都通过 `ICacheService` 接口进行，主要方法包括：
 
-- ICacheService 缓存接口
-- LocalCacheServiceImpl 本地缓存实现
-- RedisCacheServiceImpl Redis 缓存实现
-- UnifiedCacheServiceImpl 统一缓存服务
-- CacheUtils 工具类
+- `get(String key)`: 获取缓存值。
+- `get(String key, Function loadData)`: 获取缓存值，若不存在则通过函数加载并回写缓存。
+- `set(String key, Object data, long expireTime)`: 设置缓存及过期时间。
+- `exists(String key)`: 判断键是否存在。
+- `remove(String key)`: 删除指定缓存。
+- `clear()`: 情况当前缓存空间。
 
-## 3. 用法示例
+## 缓存类型与切换
+
+系统会自动检测 Redis 的配置情况：
+1. **优先使用 Redis**：如果 Spring 环境中配置了 Redis 连接，系统会自动切换到 `RedisCacheServiceImpl`。
+2. **本地缓存兜底**：若未配置 Redis，系统将使用基于内存的 `LocalCacheServiceImpl`。
+
+你可以通过 `ICacheService.useRedis()` 方法判断当前正在使用的缓存实现类型。
+
+## 便捷工具类：`CacheUtils`
+
+为了简化开发，系统提供了一个 `CacheUtils` 静态工具类，它包装了 `ICacheService` 的所有核心功能：
 
 ```java
-@Autowired
-ICacheService cacheService;
-
-cacheService.set("key", "value");
-String value = cacheService.get("key");
+// 静态调用示例
+CacheUtils.set("user_ref", userInfo, 3600);
+Object value = CacheUtils.get("user_ref");
 ```
 
-## 4. 扩展点
+## 开发者提示
 
-- 实现 ICacheService 可自定义缓存实现
-- 支持多级缓存、分布式缓存扩展
-
-## 5. 常见问题
-
-- **如何切换缓存类型？**
-  配置 `ic.cache.type` 为 local 或 redis。
+- 缓存模块通过 `IcCacheAutoConfiguration` 实现自动扫描和注册。
+- `UnifiedCacheServiceImpl` 是系统的核心入口，它负责根据环境自动分配底层实现。
+- 对于本地缓存，底层使用了高效的内存管理机制。
 
 ---
 
-> 详细用法请参考源码及注释。 
+> 详细实现请参考：`cn.icframework.cache` 包下的相关源码。
