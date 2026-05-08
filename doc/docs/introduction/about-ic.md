@@ -1,37 +1,68 @@
 # IC Framework 项目介绍
 
-<a href='#'  target=_blank>IC Framework</a> 是一个套开发脚手架，后端使用<a href='https://spring.io/' target=_blank>
-SpringBoot</a>
-，中台使用<a href='https://tdesign.tencent.com/' target=_blank>TDesign（vue3）</a>
-，小程序使用<a href='https://uniapp.dcloud.net.cn/' target=_blank>uniapp</a>，
-APP使用<a href='https://flutter.cn/' target=_blank>flutter</a>。
-集成登录、角色权限、用户部门、文件管理等基础功能。规范设计代码，提供代码生成工具，以供开发者快速开发成套平台，把精力放到业务开发中。
+IC Framework 是一套面向业务开发的集成框架。它不是只提供几个工具类，而是把一个完整项目里最常重复搭建的基础层先做好：
+
+- 后端基础结构
+- 权限与登录
+- 用户、角色、菜单、部门、岗位
+- MyBatis 查询增强
+- 代码生成
+- 自动建表与升级脚本
+- 中台前端集成示例
+
+它的目标很直接：让开发者从“搭脚手架、补基础设施”切换到“直接做业务模块”。
+
+## 你可以把它理解成什么
+
+如果你第一次接触这个仓库，最适合的理解方式是：
+
+1. `ic-framework` 是底层框架能力集合
+2. `ic-framework-service` 是基于这套框架做出的集成示例工程
+3. 日常开发通常不是从零拼框架模块，而是从集成工程起步，直接扩展自己的业务模块
+
+所以文档也建议按这个顺序阅读：
+
+1. 先看怎么把示例工程跑起来
+2. 再看一个业务模块是怎么组织的
+3. 再理解 `ic-framework-system` 和 `ic-mybatis`
 
 ## 核心特点
-- **Spring Boot 3.5.3+ / JDK 21+**：紧跟主流技术栈
-- **高度集成**：开发者只需要编写实体，插件生成代码，ddl自动化
-- **mybatis增强**：支持复杂sql、嵌套sql的java实现
 
-## 项目定位
+- 基于 Spring Boot 和 Java 的主流后端栈
+- 约定清晰，模块结构统一
+- `ic-mybatis` 支持复杂查询与结果映射
+- `dber` 支持实体 DDL 和升级脚本
+- 自带 system 基础模块，减少重复建设
+- 有代码生成器和 IDEA 插件辅助
+- 提供后台、小程序、App 的集成方向
 
-- **一站式集成**：集成权限、缓存、代码生成、数据库增强等常用能力
-- **模块化设计**：各模块解耦，按需引入，便于扩展
-- **多端支持**：适用于中台、管理后台、小程序、App 等多种场景
-- **开源共建**：欢迎有兴趣的开发者参与完善
+## 适合谁
 
-## 适用场景
+比较适合下面这几类项目：
 
-- 中后台系统
-- 多端一体化项目（如 Web+小程序+App）
-- 需要快速搭建权限、缓存、代码生成等基础设施的项目
-- 追求高扩展性、可维护性的 Java 项目
+- 管理后台
+- 带组织、角色、权限体系的业务系统
+- 想快速起一个完整中后台骨架的团队
+- 想统一项目代码结构、减少重复 CRUD 的团队
 
+## 这套文档怎么读最顺
 
-## 发展现状
+如果你是第一次接项目，推荐顺序：
 
-- 框架处于开发阶段，部分功能持续完善中
-- 文档逐步补充，欢迎 issue/PR 参与共建
+1. [/docs/start/import](/docs/start/import)
+2. [/docs/introduction/structure](/docs/introduction/structure)
+3. [/docs/start/java](/docs/start/java)
+4. [/docs/system/system](/docs/system/system)
+5. [/docs/ic-mybatis/ic-mybatis](/docs/ic-mybatis/ic-mybatis)
 
----
+如果你已经把项目跑起来了，后面最常用的是这些章节：
 
-> 目标：让开发者专注业务，基础设施交给框架！
+- [/docs/base/entity](/docs/base/entity)
+- [/docs/base/api](/docs/base/api)
+- [/docs/base/wrapperbuilder](/docs/base/wrapperbuilder)
+- [/docs/ic-mybatis/query](/docs/ic-mybatis/query)
+- [/docs/ic-mybatis/query-dif](/docs/ic-mybatis/query-dif)
+
+## 一句话目标
+
+让开发者专注业务，基础设施交给框架。

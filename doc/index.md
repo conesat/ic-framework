@@ -5,13 +5,13 @@ layout: home
 hero:
   name: "IC Framework"
   text: "集成开发脚手架"
-  tagline: 集成开发框架-快速构建完整项目。内置flutter、uniapp、tdesign前端集成示例
+  tagline: 面向中后台与多端业务的集成开发框架，先把系统能力接好，再把精力放到业务上
   actions:
     - theme: brand
-      text: 🚀 开始了解
-      link: /docs/introduction/about-ic
+      text: 🚀 先跑起来
+      link: /docs/start/import
     - theme: alt
-      text: 📦 模块总览
+      text: 📦 看整体结构
       link: /docs/introduction/structure
     - theme: alt
       text: 🔗 后台预览 test/Aa123456
@@ -53,10 +53,11 @@ features:
 
 ## 📚 文档导航
 
-- [🌟 项目介绍](/docs/introduction/about-ic)
-- [🛠️ 架构说明](/docs/introduction/structure)
-- [🚀 快速上手](/docs/base/ic-config)
-- [📦 模块文档](/docs/introduction/structure)
+- [先跑通示例工程](/docs/start/import)
+- [理解项目结构](/docs/introduction/structure)
+- [按规范开发一个模块](/docs/start/java)
+- [理解 system 模块](/docs/system/system)
+- [学习 ic-mybatis 查询](/docs/ic-mybatis/query)
 
 ## 🌐 社区与贡献
 

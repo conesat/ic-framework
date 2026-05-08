@@ -1,165 +1,193 @@
-# 导入项目
+# 导入与启动
 
-## 简介
-ic-framework-service 是使用IcFramework开发的集成框架、包含鉴权、组织管理等基础功能。类似 [若依](https://gitee.com/y_project/RuoYi) 平台,
-接下来的教程我们从 ic-framework-project 的使用开始。
+这一页只做一件事：把示例工程跑起来。
 
-## 拉取代码
+如果你是第一次接触 IC Framework，建议先跑通 `ic-framework-service`，不要一上来就啃底层源码。
 
-默认是main分支。如果你想查看hotel代码，请切换hotel分支
+## 1. 先知道你要启动什么
 
-作者的环境（jdk是必须的21+）：
+通常日常开发会基于 `ic-framework-service` 进行，它已经把这些东西组织好了：
 
-- JDK 21+ (必须)
-- MySQL 5.7
-- Maven 3.9.10 (必须设置maven的jdk为21+)
-- Node v23.11.0
-- Npm 8.13.2
-- Pnpm 10.9.0 (可以只用npm或者cnpm看个人习惯)
+- `ic-framework-system`：系统基础模块
+- `ic-framework-project`：业务模块
+- `_web/admin`：后台前端
 
-## clone或下载github项目
+接下来的步骤，默认都是基于这个集成工程。
 
-地址：[ic-framework-service](https://github.com/conesat/ic-framework-service)
-![](/public/imgs/service.png)
+## 2. 环境准备
 
->
+建议至少准备：
 
-## 设置source
+- JDK 21+
+- Maven 3.9+
+- MySQL
+- Node.js
+- pnpm 或 npm
 
-target/generated-sources/annotations下会生成IcMybatis生成的代码，需要设置为source
-（这块逻辑类似mybatis-flex：ps这是个很nice的框架ic-mybatis有许多地方都借鉴它）
+当前仓库里有 Java 25 相关配置和说明，但如果你只是先把工程跑起来，优先保证本地 Maven 与 JDK 版本能匹配项目即可。
+
+## 3. 拉取示例工程
+
+仓库地址：
+
+- [ic-framework-service GitHub](https://github.com/conesat/ic-framework-service)
+
+默认分支是 `main`。如果你要看 hotel 示例，需要切到对应分支。
+
+## 4. 导入 IDEA 后先做一件事
+
+`ic-mybatis` 会在：
+
+```text
+target/generated-sources/annotations
+```
+
+生成 def 文件。这个目录需要在 IDEA 里标记为 source，否则你会看到大量 `xxxDef` 找不到。
+
 ![](/public/imgs/project-setting.png)
 
->
+## 5. 配置后端
 
-## 配置数据库与oss
+### 数据库
 
-**记得先创建好数据库哦**作者字符集选用：utf-8 规则： utf8_general_ci
+先创建数据库，然后修改：
 
-oss用于存储上传文件如用户头像、公告图片，没有可以先留空，当然也可以改为本地存储或者fastdfs【但是作者还没完善，欢迎提交pr】
-![](/public/imgs/dev.png)
+- `ic-framework-project/src/main/resources/application-dev.yml`
+- `ic-framework-project/src/main/resources/application-prod.yml`
 
-## 启动项目
+当前示例里能看到这些配置项：
 
-运行 project 项目下的 cn.icframework.project.ProjectApplication
-
-正常情况下，会看到以下输出则java启动成功。
-
-```log
-......
-2025-07-18T14:03:25.204+08:00  INFO 24416 --- [ic-project] [           main] cn.icframework.dber.DDLHelper            : CREATE TABLE IF NOT EXISTS `sys_setting` (
- `id` bigint NOT NULL ,
- `name` varchar(30) NOT NULL  COMMENT '系统名称',
- `ad_type` int NULL  COMMENT '首页广告类型',
- `app_ad_type` int NULL  COMMENT 'App开屏广告类型',
- `ad_file_url` varchar(255) NULL  COMMENT '首页广告文件地址',
- `app_ad_file_url` varchar(255) NULL  COMMENT 'App开屏广告文件地址',
- `out_date_time` datetime NULL  COMMENT '过期时间',
- `ad_url` varchar(255) NULL  COMMENT '首页广告跳转地址',
- `activate_time` datetime NULL  COMMENT '激活时间',
- `app_ad_url` varchar(255) NULL  COMMENT 'App开屏广告跳转地址',
- `domain` varchar(255) NOT NULL  COMMENT '域名',
- `activation_code` varchar(1000) NOT NULL  COMMENT '激活码',
- `logo_file_id` varchar(255) NULL  COMMENT 'logo'
-, PRIMARY KEY ( `id` )
-
-
-)  ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='系统设置';
-
-2025-07-18T14:03:25.374+08:00  INFO 24416 --- [ic-project] [           main] c.i.cache.impl.UnifiedCacheServiceImpl   : Cache service initialized - Redis available: false
-2025-07-18T14:03:26.366+08:00  INFO 24416 --- [ic-project] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 9999 (http) with context path '/api'
-2025-07-18T14:03:26.379+08:00  INFO 24416 --- [ic-project] [           main] c.i.project.ProjectApplication           : Started ProjectApplication in 7.372 seconds (process running for 8.474)
- 
-  _____ _____   ______                                           _    
- |_   _/ ____| |  ____|                                         | |   
-   | || |      | |__ _ __ __ _ _ __ ___   _____      _____  _ __| | __
-   | || |      |  __| '__/ _` | '_ ` _ \ / _ \ \ /\ / / _ \| '__| |/ /
-  _| || |____  | |  | | | (_| | | | | | |  __/\ V  V / (_) | |  |   < 
- |_____\_____| |_|  |_|  \__,_|_| |_| |_|\___| \_/\_/ \___/|_|  |_|\_\
- =============================================================================                        
- << IC Framework V1.0.0 -- start successful >>                                                               
-
-2025-07-18T14:03:26.591+08:00  INFO 24416 --- [ic-project] [           main] cn.icframework.dber.DDLHelper            : ALTER TABLE sys_user_role ADD CONSTRAINT `FK_sys_user_role_user_id` FOREIGN KEY (`user_id`) REFERENCES `sys_user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-......
+```yaml
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3307/ic
+    username: root
+    password: your-password
 ```
 
-## 前端配置
+### MyBatis 配置
 
-完善dev后台地址配置，在_web/admin完善以下文件
+项目默认会读取：
 
-- .env
-- .env.development
-- .env.site
-- .env.test
-
->
-内容如下：
-
-```
-# 打包路径
-VITE_BASE_URL = /
-VITE_IS_REQUEST_PROXY = true
-# 后台地址接口
-VITE_API_URL = http://localhost:9999
-# 接口前缀
-VITE_API_URL_PREFIX = /api
+```yaml
+mybatis:
+  config-location: classpath:mybatis-config.xml
 ```
 
-![](/public/imgs/web-dev.png)
+开发环境里也可能切到：
 
-## 安装依赖
-
-终端进入/_web/admin 执行下面安装命令
-
-```cmd
-npm i
+```yaml
+mybatis:
+  config-location: classpath:mybatis-config-dev.xml
 ```
 
-作者用 pnpm
+### 文件存储
 
-```cmd
+如果你暂时不处理上传文件，可以先把相关配置留空。  
+system 模块当前最明确支持的是 `minio / oss`，示例配置里还能看到业务层的 `fastdfs` 配置。
+
+## 6. 启动后端
+
+运行：
+
+```text
+cn.icframework.project.ProjectApplication
+```
+
+或者在 `ic-framework-project` 目录下执行 Spring Boot 启动命令。
+
+正常启动后，你应该重点确认这几件事：
+
+- DDL 自动执行
+- 应用启动成功
+- 端口正常监听
+- context-path 为 `/api`
+
+当前示例配置里可以看到：
+
+```yaml
+server:
+  port: 9998
+  servlet:
+    context-path: /api
+```
+
+所以后端地址通常是：
+
+```text
+http://localhost:9998/api
+```
+
+## 7. 启动前端
+
+后台前端目录：
+
+```text
+_web/admin
+```
+
+先配置环境变量文件，例如：
+
+- `.env`
+- `.env.development`
+- `.env.site`
+- `.env.test`
+
+最关键的是这几个值：
+
+```env
+VITE_BASE_URL=/
+VITE_IS_REQUEST_PROXY=true
+VITE_API_URL=http://localhost:9998
+VITE_API_URL_PREFIX=/api
+```
+
+然后安装依赖：
+
+```bash
 pnpm i
 ```
 
-## 启动
+启动开发服务器：
 
-如果一切顺利接下来就可以启动前端项目了
-
-```cmd
-npm run dev
-```
-
-作者用 pnpm
-
-```cmd
+```bash
 pnpm run dev
 ```
 
-顺利的话会看到以下输出
+如果你用 npm，也可以改成对应命令。
 
-```log
-......
-VITE v5.4.19  ready in 3942 ms
+## 8. 首次启动时会发生什么
 
-➜  Local:   http://localhost:3002/
-➜  Network: http://192.168.23.110:3002/
-➜  Network: http://192.168.56.1:3002/
-➜  Network: http://192.168.137.1:3002/
-➜  Network: http://172.17.96.1:3002/
-➜  Network: http://172.19.64.1:3002/
-➜  Network: http://172.30.240.1:3002/
-➜  Network: http://172.25.144.1:3002/
-➜  Network: http://172.21.112.1:3002/
-➜  press h + enter to show help
-```
+第一次启动通常会看到这些行为：
 
-## 激活系统
-![](/public/imgs/init.png)
->
-初始化需要秘钥
->RLK2ihRbHkQlE99U3DIoQfEwlb8hR1Dz1K0icaFzIT0DXHJcZ7lw73VhyRNYmdZamcNjEx-lkTT4uc2DHxc6kvrB_Akb0DCmAk57xyCIhMbD75J94GpFp191I7HZ4U4YddHCLSpHDvYGmyGhGZnnMgQCmV1S8zY7QpV29GPA8YkLrAeW_5KlT5xPuJDNUibh_0Il>BSE7b5GWBNSyUg6xXbx-h0Bta-gicHatNV7toED7P0IVGlCyW3OVTEJY_Q-1cYBMb6v1WJn2D8B5pGcuHeMmmEuGSenzbMCWERU2SwStPVLiqJNRDRD9WDVPBH7LDx0hVQ7OntxvoMYCj5xxtQ
+- `dber` 根据实体创建或调整表结构
+- system 模块执行初始化任务
+- 权限、菜单、岗位等基础数据按配置写入
 
->生成秘钥请在project项目system/test/CodeGen.java
+也就是说，IC Framework 不是“项目能启动但系统空白”，而是尽量把基础层一起初始化出来。
 
-一切顺利的话，登录看到的页面是下面这样的：
-![](/public/imgs/index.png)
+## 9. 如果启动失败，优先检查这些点
+
+最常见的问题基本集中在这里：
+
+1. JDK 版本不匹配
+2. Maven 使用的不是预期 JDK
+3. `generated-sources/annotations` 没标记 source
+4. 数据库没创建或连接信息不对
+5. 前端 `VITE_API_URL` 配错端口
+6. `mybatis-config.xml` 没正确加载
+
+## 10. 跑起来之后下一步看什么
+
+后端和前端都能启动后，推荐继续看：
+
+1. [/docs/introduction/structure](/docs/introduction/structure)
+2. [/docs/start/java](/docs/start/java)
+3. [/docs/system/system](/docs/system/system)
+
+这样你就会知道：
+
+- 业务代码应该写在哪
+- system 模块已经帮你做了什么
+- 后面新增一个模块应该照什么结构写

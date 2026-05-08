@@ -25,33 +25,38 @@ export default defineConfig({
 
         sidebar: [
             {
-                text: '简介',
+                text: '开始这里',
                 items: [
                     { text: '关于IC', link: '/docs/introduction/about-ic' },
                     { text: '项目结构', link: '/docs/introduction/structure' },
+                    { text: '导入与启动', link: '/docs/start/import' },
                 ]
             },
             {
-                text: '起步',
+                text: '开发流程',
                 items: [
-                    { text: '运行项目', link: '/docs/start/import' },
-                    { text: '后台设计', link: '/docs/start/java' },
-                    { text: '中台设计', link: '/docs/start/vue' },
+                    { text: '后端开发结构', link: '/docs/start/java' },
+                    { text: '前端开发结构', link: '/docs/start/vue' },
                     { text: '代码生成', link: '/docs/start/code_gen' },
                 ]
             },
             {
-                text: '基础',
+                text: '核心开发',
                 items: [
                     { text: 'IC配置', link: '/docs/base/ic-config' },
-                    { text: '角色权限初始化', link: '/docs/base/rp' },
-                    { text: '岗位初始化', link: '/docs/base/pos' },
                     { text: '表实体', link: '/docs/base/entity' },
                     { text: 'API接口', link: '/docs/base/api' },
                     { text: 'WrapperBuilder', link: '/docs/base/wrapperbuilder' },
                     { text: 'Service', link: '/docs/base/service' },
                     { text: 'Mapper', link: '/docs/base/mapper' },
                     { text: 'Pojo', link: '/docs/base/pojo' },
+                ]
+            },
+            {
+                text: '系统模块',
+                items: [
+                    { text: 'ic-framework-system', link: '/docs/system/system' },
+                    { text: '系统初始化', link: '/docs/system/init' },
                 ]
             },
             {
@@ -67,35 +72,22 @@ export default defineConfig({
                 ]
             },
             {
-                text: '权限 (Auth)',
+                text: '扩展模块',
                 items: [
-                    { text: '基本说明', link: '/docs/auth/auth' },
-                ]
-            },
-            {
-                text: '缓存 (Cache)',
-                items: [
-                    { text: '基本说明', link: '/docs/cache/cache' },
-                ]
-            },
-            {
-                text: 'Dber',
-                items: [
-                    { text: '配置', link: '/docs/dber/config' },
-                    { text: '使用', link: '/docs/dber/dber' },
-                ]
-            },
-            {
-                text: '代码生成 (Gen)',
-                items: [
-                    { text: '基本说明', link: '/docs/gen/gen' },
-                ]
-            },
-            {
-                text: '核心与工具',
-                items: [
+                    { text: '权限 (Auth)', link: '/docs/auth/auth' },
+                    { text: '缓存 (Cache)', link: '/docs/cache/cache' },
+                    { text: 'Dber 配置', link: '/docs/dber/config' },
+                    { text: 'Dber 使用', link: '/docs/dber/dber' },
+                    { text: '代码生成器模块', link: '/docs/gen/gen' },
                     { text: '基础核心 (Core)', link: '/docs/core/core' },
                     { text: '通用工具 (Common)', link: '/docs/common/utils' },
+                ]
+            },
+            {
+                text: '其他',
+                items: [
+                    { text: '更新日志', link: '/docs/log/log' },
+                    { text: 'Java25 升级说明', link: '/docs/start/java25_upgrade' },
                 ]
             }
         ],
