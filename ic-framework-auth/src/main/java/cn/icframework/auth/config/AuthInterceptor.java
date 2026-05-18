@@ -21,30 +21,24 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.jetbrains.annotations.NotNull;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.resource.ResourceHttpRequestHandler;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 /**
  * 请求拦截，登录过来，权限过滤
+ * 
  * @author hzl
- * @since 2021-05-31  09:26:00
+ * @since 2021-05-31 09:26:00
  */
 public class AuthInterceptor implements HandlerInterceptor {
     @Value("${server.servlet.context-path:}")
@@ -71,15 +65,15 @@ public class AuthInterceptor implements HandlerInterceptor {
     /**
      * 请求预处理，进行权限校验、token校验、系统可用性校验等。
      *
-     * @param httpServletRequest 请求对象
+     * @param httpServletRequest  请求对象
      * @param httpServletResponse 响应对象
-     * @param handler 处理器
+     * @param handler             处理器
      * @return 是否放行
      */
     @Override
-    public boolean preHandle(@NotNull HttpServletRequest httpServletRequest,
-                             @NotNull HttpServletResponse httpServletResponse,
-                             @NotNull Object handler) {
+    public boolean preHandle(@NonNull HttpServletRequest httpServletRequest,
+            @NonNull HttpServletResponse httpServletResponse,
+            @NonNull Object handler) {
         if (handler instanceof ResourceHttpRequestHandler)
             return true;
 
@@ -99,7 +93,7 @@ public class AuthInterceptor implements HandlerInterceptor {
 
         String adminUrlPre = contextPath + Api.API_SYS;
         if (requestURI.replace("/", "").startsWith(adminUrlPre.replace("/", ""))) {
-            //校验系统可用性
+            // 校验系统可用性
             verifySystem(handler);
         }
         assert clazz != null;
@@ -108,7 +102,7 @@ public class AuthInterceptor implements HandlerInterceptor {
             return true;
         }
         DecodedJWT decodedJWT = verifyAuth(clazz, method, token);
-        //是否限制单处登录
+        // 是否限制单处登录
         if (decodedJWT != null && onlineUserService != null) {
             onlineUserService.verify(decodedJWT.getSubject(), JWTUtils.getTokenSessionId(decodedJWT));
         }
@@ -118,9 +112,9 @@ public class AuthInterceptor implements HandlerInterceptor {
     /**
      * 校验权限，token、用户类型、角色、权限等。
      *
-     * @param clazz 类对象
+     * @param clazz  类对象
      * @param method 方法对象
-     * @param token token字符串
+     * @param token  token字符串
      * @return 解码后的JWT
      */
     private DecodedJWT verifyAuth(Class<?> clazz, Method method, String token) {
@@ -187,105 +181,12 @@ public class AuthInterceptor implements HandlerInterceptor {
     }
 
     /**
-     * 获取所有请求路径
-     *
-     * @param clazz 类对象
-     * @param method 方法对象
-     * @return 路径集合
-     */
-    private List<String> getPath(Class<?> clazz, Method method) {
-        List<String> res = new ArrayList<>();
-        RequestMapping requestMapping = clazz.getDeclaredAnnotation(RequestMapping.class);
-        if (requestMapping != null) {
-            String[] paths = requestMapping.path();
-            for (String path : paths) {
-                List<String> methodPaths = getMethodPath(method);
-                for (String methodPath : methodPaths) {
-                    res.add(path + ":" + methodPath);
-                }
-            }
-        }
-        return res;
-    }
-
-    /**
-     * 获取方法路径
-     *
-     * @param method 方法对象
-     * @return 路径集合
-     */
-    private List<String> getMethodPath(Method method) {
-        List<String> res = new ArrayList<>();
-        RequestMapping requestMapping = method.getDeclaredAnnotation(RequestMapping.class);
-        if (requestMapping != null) {
-            if (requestMapping.value().length == 0) {
-                res.add(":");
-            }
-            for (String path : requestMapping.value()) {
-                res.add(path.replaceAll("/", ":"));
-            }
-        }
-
-        GetMapping getMapping = method.getDeclaredAnnotation(GetMapping.class);
-        if (getMapping != null) {
-            if (getMapping.value().length == 0) {
-                res.add(":get");
-            }
-            for (String path : getMapping.path()) {
-                res.add(path.replaceAll("/", ":"));
-            }
-        }
-
-        PostMapping postMapping = method.getDeclaredAnnotation(PostMapping.class);
-        if (postMapping != null) {
-            if (postMapping.value().length == 0) {
-                res.add(":post");
-            }
-            for (String path : postMapping.path()) {
-                res.add(path.replaceAll("/", ":"));
-            }
-        }
-
-        DeleteMapping deleteMapping = method.getDeclaredAnnotation(DeleteMapping.class);
-        if (deleteMapping != null) {
-            if (deleteMapping.value().length == 0) {
-                res.add(":delete");
-            }
-            for (String path : deleteMapping.path()) {
-                res.add(path.replaceAll("/", ":"));
-            }
-        }
-
-        PutMapping putMapping = method.getDeclaredAnnotation(PutMapping.class);
-        if (putMapping != null) {
-            if (putMapping.value().length == 0) {
-                res.add(":put");
-            }
-            for (String path : putMapping.path()) {
-                res.add(path.replaceAll("/", ":"));
-            }
-        }
-
-        PatchMapping patchMapping = method.getDeclaredAnnotation(PatchMapping.class);
-        if (patchMapping != null) {
-            if (patchMapping.value().length == 0) {
-                res.add(":patch");
-            }
-            for (String path : patchMapping.path()) {
-                res.add(path.replaceAll("/", ":"));
-            }
-        }
-        return res;
-    }
-
-
-    /**
      * postHandle 方法，预留扩展，当前无实现。
      */
     @Override
-    public void postHandle(@NotNull HttpServletRequest httpServletRequest,
-                           @NotNull HttpServletResponse httpServletResponse,
-                           @NotNull Object o, ModelAndView modelAndView) throws Exception {
+    public void postHandle(@NonNull HttpServletRequest httpServletRequest,
+            @NonNull HttpServletResponse httpServletResponse,
+            @NonNull Object o, @Nullable ModelAndView modelAndView) throws Exception {
 
     }
 
@@ -293,12 +194,11 @@ public class AuthInterceptor implements HandlerInterceptor {
      * afterCompletion 方法，预留扩展，当前无实现。
      */
     @Override
-    public void afterCompletion(@NotNull HttpServletRequest httpServletRequest,
-                                @NotNull HttpServletResponse httpServletResponse,
-                                @NotNull Object o, Exception e) throws Exception {
+    public void afterCompletion(@NonNull HttpServletRequest httpServletRequest,
+            @NonNull HttpServletResponse httpServletResponse,
+            @NonNull Object o, @Nullable Exception e) throws Exception {
 
     }
-
 
     /**
      * 校验系统可用性，未初始化、未激活、过期等抛出异常。
@@ -332,11 +232,10 @@ public class AuthInterceptor implements HandlerInterceptor {
         }
     }
 
-
     /**
      * 获取用户类型，优先取方法注解。
      *
-     * @param requireAuth 类注解
+     * @param requireAuth       类注解
      * @param methodRequireAuth 方法注解
      * @return 用户类型
      */
