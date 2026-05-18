@@ -22,4 +22,8 @@ public class RP {
      * 权限路径集合。
      */
     private Set<String> permissionPaths;
+    /**
+     * 权限ID集合。
+     */
+    private Set<Long> permissionIds;
 }

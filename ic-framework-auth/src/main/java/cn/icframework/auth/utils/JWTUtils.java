@@ -466,6 +466,9 @@ public class JWTUtils {
         if (rp.getPermissionPaths() == null) {
             rp.setPermissionPaths(Collections.emptySet());
         }
+        if (rp.getPermissionIds() == null) {
+            rp.setPermissionIds(Collections.emptySet());
+        }
         if (rp.getRoles() == null) {
             rp.setRoles(Collections.emptySet());
         }

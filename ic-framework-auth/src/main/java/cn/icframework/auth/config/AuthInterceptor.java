@@ -170,8 +170,13 @@ public class AuthInterceptor implements HandlerInterceptor {
 
             // 角色未通过校验或者 角色通过校验但是不能mixRP，需要保证有权限才行
             if (!pass || !requireAuth.mixRP()) {
-                Set<String> methodPermissionSet = PermissionHelper.getMethodPermissionSet(method);
-                pass = methodPermissionSet.stream().anyMatch(rp.getPermissionPaths()::contains);
+                Set<Long> methodPermissionIdSet = PermissionHelper.getMethodPermissionIdSet(method);
+                if (!methodPermissionIdSet.isEmpty() && rp.getPermissionIds() != null) {
+                    pass = methodPermissionIdSet.stream().anyMatch(rp.getPermissionIds()::contains);
+                } else {
+                    Set<String> methodPermissionSet = PermissionHelper.getMethodPermissionSet(method);
+                    pass = methodPermissionSet.stream().anyMatch(rp.getPermissionPaths()::contains);
+                }
                 Assert.isTrue(pass, new PermissionDenyException());
             }
             JwtContext.set(decodedJWT);

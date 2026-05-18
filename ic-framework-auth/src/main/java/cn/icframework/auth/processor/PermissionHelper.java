@@ -37,6 +37,10 @@ public class PermissionHelper {
      * 这里保存所有接口对于需要的权限集合，用于鉴权时候校验是否拥有权限
      */
     private static final Map<String, Set<String>> METHOD_PERMISSION_GROUP_SET = new HashMap<>();
+    /**
+     * 这里保存所有接口对应的权限ID集合，用于鉴权时优先进行数字匹配。
+     */
+    private static final Map<String, Set<Long>> METHOD_PERMISSION_ID_SET = new HashMap<>();
 
     /**
      * 获取方法对应的权限集合。
@@ -46,6 +50,38 @@ public class PermissionHelper {
     public static Set<String> getMethodPermissionSet(Method method) {
         Set<String> set = METHOD_PERMISSION_GROUP_SET.get(method.toString());
         return set == null ? Collections.emptySet() : set;
+    }
+
+    /**
+     * 获取方法对应的权限ID集合。
+     * @param method 方法对象
+     * @return 权限ID集合
+     */
+    public static Set<Long> getMethodPermissionIdSet(Method method) {
+        Set<Long> set = METHOD_PERMISSION_ID_SET.get(method.toString());
+        return set == null ? Collections.emptySet() : set;
+    }
+
+    /**
+     * 刷新权限路径到权限ID的映射。
+     * 权限落库后由业务模块回填，用于运行期优先使用稳定的权限ID鉴权。
+     *
+     * @param permissionIdMap 权限完整路径与权限ID映射
+     */
+    public static void refreshPermissionIds(Map<String, Long> permissionIdMap) {
+        METHOD_PERMISSION_ID_SET.clear();
+        for (Map.Entry<String, Set<String>> entry : METHOD_PERMISSION_GROUP_SET.entrySet()) {
+            Set<Long> permissionIds = new HashSet<>();
+            for (String permissionPath : entry.getValue()) {
+                Long permissionId = permissionIdMap.get(permissionPath);
+                if (permissionId != null) {
+                    permissionIds.add(permissionId);
+                }
+            }
+            if (!permissionIds.isEmpty()) {
+                METHOD_PERMISSION_ID_SET.put(entry.getKey(), permissionIds);
+            }
+        }
     }
 
     /**
@@ -60,17 +96,47 @@ public class PermissionHelper {
             return;
         }
         RequestMapping requestMappingClass = controllerClass.getDeclaredAnnotation(RequestMapping.class);
-        String[] paths = requestMappingClass.value();
+        if (requestMappingClass == null) {
+            return;
+        }
+        String[] paths = getMappingPaths(requestMappingClass.value(), requestMappingClass.path());
         for (String path : paths) {
+            String groupPath = toPermissionPath(path, ":");
             PermissionGroupInit permissionGroupInit = new PermissionGroupInit();
             permissionGroupInit.setName(requestMappingClass.name());
-            permissionGroupInit.setPath(path.replaceAll("/", ":"));
+            permissionGroupInit.setPath(groupPath);
             handelPermissions(controllerClass, permissionGroupInit);
             // 如果这个类下面没有需要鉴权的接口就跳过
             if (permissionGroupInit.getPermissions().isEmpty()) {
                 continue;
             }
-            PERMISSION_GROUP_INIT_MAP.add(permissionGroupInit);
+            PermissionGroupInit exists = findPermissionGroup(groupPath);
+            if (exists == null) {
+                PERMISSION_GROUP_INIT_MAP.add(permissionGroupInit);
+            } else {
+                mergePermissions(exists, permissionGroupInit);
+            }
+        }
+    }
+
+    private static PermissionGroupInit findPermissionGroup(String path) {
+        for (PermissionGroupInit permissionGroupInit : PERMISSION_GROUP_INIT_MAP) {
+            if (path.equals(permissionGroupInit.getPath())) {
+                return permissionGroupInit;
+            }
+        }
+        return null;
+    }
+
+    private static void mergePermissions(PermissionGroupInit exists, PermissionGroupInit incoming) {
+        Set<String> permissionPaths = new HashSet<>();
+        for (PermissionGroupInit.Permission permission : exists.getPermissions()) {
+            permissionPaths.add(permission.getPath());
+        }
+        for (PermissionGroupInit.Permission permission : incoming.getPermissions()) {
+            if (permissionPaths.add(permission.getPath())) {
+                exists.getPermissions().add(permission);
+            }
         }
     }
 
@@ -117,112 +183,80 @@ public class PermissionHelper {
 
         RequestMapping requestMapping = method.getDeclaredAnnotation(RequestMapping.class);
         if (requestMapping != null) {
-            if (requestMapping.value().length == 0) {
-                PermissionGroupInit.Permission permission = new PermissionGroupInit.Permission();
-                permission.setName(requestMapping.name());
-                permission.setPath(":");
-                permission.setUserType(requireUserType);
-                res.add(permission);
-            }
-            for (String path : requestMapping.value()) {
-                PermissionGroupInit.Permission permission = new PermissionGroupInit.Permission();
-                permission.setName(requestMapping.name());
-                permission.setPath(path.replaceAll("/", ":"));
-                permission.setUserType(requireUserType);
-                res.add(permission);
-            }
+            addPermissions(res, requestMapping.name(), requireUserType, ":",
+                    getMappingPaths(requestMapping.value(), requestMapping.path()));
         }
 
         GetMapping getMapping = method.getDeclaredAnnotation(GetMapping.class);
         if (getMapping != null) {
-            if (getMapping.value().length == 0) {
-                PermissionGroupInit.Permission permission = new PermissionGroupInit.Permission();
-                permission.setName(getMapping.name());
-                permission.setPath(":get");
-                permission.setUserType(requireUserType);
-                res.add(permission);
-            }
-            for (String path : getMapping.value()) {
-                PermissionGroupInit.Permission permission = new PermissionGroupInit.Permission();
-                permission.setName(getMapping.name());
-                permission.setPath(path.replaceAll("/", ":"));
-                permission.setUserType(requireUserType);
-                res.add(permission);
-            }
+            addPermissions(res, getMapping.name(), requireUserType, ":get",
+                    getMappingPaths(getMapping.value(), getMapping.path()));
         }
 
         PostMapping postMapping = method.getDeclaredAnnotation(PostMapping.class);
         if (postMapping != null) {
-            if (postMapping.value().length == 0) {
-                PermissionGroupInit.Permission permission = new PermissionGroupInit.Permission();
-                permission.setName(postMapping.name());
-                permission.setPath(":post");
-                permission.setUserType(requireUserType);
-                res.add(permission);
-            }
-            for (String path : postMapping.value()) {
-                PermissionGroupInit.Permission permission = new PermissionGroupInit.Permission();
-                permission.setName(postMapping.name());
-                permission.setPath(path.replaceAll("/", ":"));
-                permission.setUserType(requireUserType);
-                res.add(permission);
-            }
+            addPermissions(res, postMapping.name(), requireUserType, ":post",
+                    getMappingPaths(postMapping.value(), postMapping.path()));
         }
 
         DeleteMapping deleteMapping = method.getDeclaredAnnotation(DeleteMapping.class);
         if (deleteMapping != null) {
-            if (deleteMapping.value().length == 0) {
-                PermissionGroupInit.Permission permission = new PermissionGroupInit.Permission();
-                permission.setName(deleteMapping.name());
-                permission.setPath(":delete");
-                permission.setUserType(requireUserType);
-                res.add(permission);
-            }
-            for (String path : deleteMapping.value()) {
-                PermissionGroupInit.Permission permission = new PermissionGroupInit.Permission();
-                permission.setName(deleteMapping.name());
-                permission.setPath(path.replaceAll("/", ":"));
-                permission.setUserType(requireUserType);
-                res.add(permission);
-            }
+            addPermissions(res, deleteMapping.name(), requireUserType, ":delete",
+                    getMappingPaths(deleteMapping.value(), deleteMapping.path()));
         }
 
         PutMapping putMapping = method.getDeclaredAnnotation(PutMapping.class);
         if (putMapping != null) {
-            if (putMapping.value().length == 0) {
-                PermissionGroupInit.Permission permission = new PermissionGroupInit.Permission();
-                permission.setName(putMapping.name());
-                permission.setPath(":put");
-                permission.setUserType(requireUserType);
-                res.add(permission);
-            }
-            for (String path : putMapping.value()) {
-                PermissionGroupInit.Permission permission = new PermissionGroupInit.Permission();
-                permission.setName(putMapping.name());
-                permission.setPath(path.replaceAll("/", ":"));
-                permission.setUserType(requireUserType);
-                res.add(permission);
-            }
+            addPermissions(res, putMapping.name(), requireUserType, ":put",
+                    getMappingPaths(putMapping.value(), putMapping.path()));
         }
 
         PatchMapping patchMapping = method.getDeclaredAnnotation(PatchMapping.class);
         if (patchMapping != null) {
-            if (patchMapping.value().length == 0) {
-                PermissionGroupInit.Permission permission = new PermissionGroupInit.Permission();
-                permission.setName(patchMapping.name());
-                permission.setPath(":patch");
-                permission.setUserType(requireUserType);
-                res.add(permission);
-            }
-            for (String path : patchMapping.value()) {
-                PermissionGroupInit.Permission permission = new PermissionGroupInit.Permission();
-                permission.setName(patchMapping.name());
-                permission.setPath(path.replaceAll("/", ":"));
-                permission.setUserType(requireUserType);
-                res.add(permission);
-            }
+            addPermissions(res, patchMapping.name(), requireUserType, ":patch",
+                    getMappingPaths(patchMapping.value(), patchMapping.path()));
         }
         return res;
+    }
+
+    private static String[] getMappingPaths(String[] values, String[] paths) {
+        return values.length > 0 ? values : paths;
+    }
+
+    private static void addPermissions(List<PermissionGroupInit.Permission> permissions,
+            String name,
+            String userType,
+            String defaultPath,
+            String[] paths) {
+        if (paths.length == 0) {
+            addPermission(permissions, name, userType, defaultPath);
+            return;
+        }
+        for (String path : paths) {
+            addPermission(permissions, name, userType, toPermissionPath(path, defaultPath));
+        }
+    }
+
+    private static void addPermission(List<PermissionGroupInit.Permission> permissions,
+            String name,
+            String userType,
+            String path) {
+        PermissionGroupInit.Permission permission = new PermissionGroupInit.Permission();
+        permission.setName(name);
+        permission.setPath(path);
+        permission.setUserType(userType);
+        permissions.add(permission);
+    }
+
+    private static String toPermissionPath(String path, String defaultPath) {
+        if (!StringUtils.hasLength(path)) {
+            return defaultPath;
+        }
+        String permissionPath = path.replaceAll("/", ":");
+        if (!permissionPath.startsWith(":")) {
+            permissionPath = ":" + permissionPath;
+        }
+        return permissionPath;
     }
 
     /**

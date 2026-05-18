@@ -19,7 +19,7 @@ public class BasicPermission {
     /**
      * 权限ID，主键。
      */
-    @Id(idType = IdType.SNOWFLAKE)
+    @Id(idType = IdType.AUTO)
     private Long id;
 
     /**
@@ -45,4 +45,5 @@ public class BasicPermission {
      */
     @TableField(notNull = true, comment = "名称")
     private String name;
+
 }
