@@ -332,7 +332,7 @@ public class JWTUtils {
                 onlineInfo.setPlatform(platform);
                 onlineInfo.setLocation(IpUtils.getIpRegion(onlineInfo.getIp()));
             }
-            onlineUserService.login(onlineInfo);
+            onlineUserService.recordLoginSession(onlineInfo);
         } else if (onlineUserService != null) {
             onlineUserService.refresh(sessionId, refreshExpireTime.getTime());
         }

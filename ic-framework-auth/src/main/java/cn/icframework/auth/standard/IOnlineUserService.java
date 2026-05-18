@@ -15,11 +15,25 @@ import lombok.Setter;
 public interface IOnlineUserService {
 
     /**
-     * 用户登录
-     * 当调用JWTUtils.createToken时回调
-     * @param onlineInfo
+     * 记录新建的在线会话。
+     * 当 JWTUtils.createToken 首次创建 sessionId 时回调，用于保存在线用户状态。
+     *
+     * @param onlineInfo 在线会话信息
      */
-    void login(OnlineInfo onlineInfo);
+    default void recordLoginSession(OnlineInfo onlineInfo) {
+        login(onlineInfo);
+    }
+
+    /**
+     * 用户登录后的在线状态回调。
+     * 保留该方法用于兼容已有实现，新代码优先实现 {@link #recordLoginSession(OnlineInfo)}。
+     *
+     * @param onlineInfo 在线会话信息
+     */
+    @Deprecated(since = "1.0.3", forRemoval = false)
+    default void login(OnlineInfo onlineInfo) {
+        throw new UnsupportedOperationException("Please implement recordLoginSession(OnlineInfo)");
+    }
 
     /**
      * token刷新

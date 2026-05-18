@@ -35,11 +35,11 @@ ic:
 
 IC Framework 提供了多个标准接口供开发者扩展，以满足不同的业务需求：
 
-### 1. 自定义用户体系 (`IOnlineUserService`)
+### 1. 在线会话扩展 (`IOnlineUserService`)
 通过实现 `IOnlineUserService` 接口，你可以：
-- 接管用户登录逻辑。
+- 记录 Token 首次创建后的在线会话信息。
 - 自定义 Token 的校验、刷新及注销行为。
-- 管理用户在线状态。
+- 管理用户在线状态和强制下线逻辑。
 
 ### 2. 系统状态校验 (`ISystemVerifyService`)
 如果你的应用需要授权激活码才能运行，可以实现该接口来自定义激活校验逻辑。
