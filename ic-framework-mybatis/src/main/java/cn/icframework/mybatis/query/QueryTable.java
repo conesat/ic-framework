@@ -89,27 +89,41 @@ public class QueryTable<QT extends QueryTable<?>> {
         return (QT) this;
     }
 
-    @SuppressWarnings("unchecked")
-    public QT as(String asName) {
-        this.asName = asName;
-        return (QT) this;
+    public QT alias(String asName) {
+        QT queryTable = copy();
+        queryTable.setAsName(asName);
+        return queryTable;
     }
 
     /**
-     * 字段 as
+     * 表别名
      */
-    @SuppressWarnings("unchecked")
-    public <T> QT as(LambdaGetter<T> lambdaGetter) {
+    public <T> QT alias(LambdaGetter<T> lambdaGetter) {
         Field field = LambdaUtils.getField(lambdaGetter);
         Collection collection = field.getDeclaredAnnotation(Collection.class);
         if (collection != null && StringUtils.hasLength(collection.prefix())) {
-            this.asName = collection.prefix();
-        } else {
-            this.asName = field.getName();
+            return alias(collection.prefix());
         }
-        return (QT) this;
+        return alias(field.getName());
     }
 
+    private QT copy() {
+        QT queryTable = newInstance();
+        queryTable.setAsName(asName);
+        queryTable.setName(name);
+        queryTable.setTableClass(tableClass);
+        queryTable.setVersionField(versionField);
+        queryTable.setLogicDeleteField(logicDeleteField);
+        queryTable.setWheres(wheres == null ? null : new ArrayList<>(wheres));
+        queryTable.setSets(sets == null ? null : new ArrayList<>(sets));
+        queryTable.setOrders(orders == null ? null : new ArrayList<>(orders));
+        queryTable.setFunc(func);
+        queryTable.setSqlWrapper(sqlWrapper);
+        queryTable.setRoot(isRoot);
+        queryTable.setWhereJoinType(whereJoinType);
+        queryTable.setChildrenQueryTables(childrenQueryTables);
+        return queryTable;
+    }
 
     public String getAsNameOrName() {
         if (StringUtils.hasLength(asName)) {

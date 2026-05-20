@@ -25,9 +25,9 @@ public class UserVO {
 **用法示例：**
 ```java
 UserDef u = UserDef.table();
-ProfileDef p = ProfileDef.table();
+ProfileDef p = ProfileDef.table().alias("p");
 
-SqlWrapper sw = SELECT(u, p.as("p")) // 给关联表起别名 'p'
+SqlWrapper sw = SELECT(u, p) // 给关联表起别名 'p'
         .FROM(u)
         .LEFT_JOIN(p).ON(u.profileId.eq(p.id));
 

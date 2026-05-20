@@ -71,6 +71,7 @@ public class SqlWrapper implements Serializable {
     protected List<String> leftOuterJoin = new ArrayList<>();
     protected List<String> rightOuterJoin = new ArrayList<>();
     private JoinType joinType; // 最后一个join的类型
+    private QueryTable<?> currentJoinTable; // 最后一个join的表
     private String asName;
 
     @Getter
@@ -155,6 +156,12 @@ public class SqlWrapper implements Serializable {
         }
         List<String> wheres = new ArrayList<>();
         for (QueryTable<?> queryTable : queryTables) {
+            if (isWhereJoinMarker(queryTable)) {
+                if (!wheres.isEmpty()) {
+                    wheres.add(queryTable.getWhereJoinType().key);
+                }
+                continue;
+            }
             if (queryTable.getFunc() != null) {
                 // 这是一个嵌套函数
                 String whereFunc = handleWhereFunc(queryTable);
@@ -171,12 +178,16 @@ public class SqlWrapper implements Serializable {
                 queryTable.getWheres().clear();
             }
             if (queryTable.getChildrenQueryTables() != null) {
-                if (!wheres.isEmpty()) {
+                String childSql = handelChileQuery(queryTable, false);
+                if (StringUtils.hasLength(childSql) && !wheres.isEmpty() && !isWhereJoinType(wheres.getLast())) {
                     wheres.add(queryTable.getWhereJoinType().key);
                 }
-                wheres.add(handelChileQuery(queryTable, false));
+                if (StringUtils.hasLength(childSql)) {
+                    wheres.add(childSql);
+                }
             }
         }
+        trimTrailingWhereJoinTypes(wheres);
         if (!wheres.isEmpty()) {
             if (!where.isEmpty()) {
                 where.add(whereJoinType.key);
@@ -937,6 +948,7 @@ public class SqlWrapper implements Serializable {
      * @param join      连接
      */
     private void wrapperJoin(QueryTable<?> joinTable, List<String> join) {
+        currentJoinTable = joinTable;
         if (joinTable.getSqlWrapper() != null) {
             joinTable.getSqlWrapper().AS(joinTable.getAsNameOrName());
             join.add(getSubSql(joinTable.getSqlWrapper(), false));
@@ -979,16 +991,13 @@ public class SqlWrapper implements Serializable {
                 for (Condition condition : queryTable.getWheres()) {
                     joinOns.add(getWhereParam(queryTable, condition));
                 }
-                Field logicDeleteField = queryTable.getLogicDeleteField();
-                Table table = queryTable.getTableClass().getAnnotation(Table.class);
-                if (logicDeleteField != null) {
-                    joinOns.add(String.format("%s.%s%s%s", queryTable.getAsNameOrName(), ModelClassUtils.getTableColumnName(table, logicDeleteField), CompareEnum.NE.getKey(coverXml), IcParamsConsts.PARAMETER_LOGIC_DELETE_GET));
-                }
                 queryTable.getWheres().clear();
             } else if (object instanceof String string) {
                 joinOns.add(string);
             }
         }
+        appendCurrentJoinLogicDelete(joinOns);
+        currentJoinTable = null;
 
         sqlClause(builder, "", joinOns, "(", ")", " AND ");
         switch (joinType) {
@@ -1013,6 +1022,18 @@ public class SqlWrapper implements Serializable {
                 this.outerJoin.set(this.outerJoin.size() - 1, outerJoin + " ON " + builder);
             }
         }
+    }
+
+    private void appendCurrentJoinLogicDelete(List<String> joinOns) {
+        if (currentJoinTable == null || currentJoinTable.getSqlWrapper() != null) {
+            return;
+        }
+        Field logicDeleteField = currentJoinTable.getLogicDeleteField();
+        if (logicDeleteField == null) {
+            return;
+        }
+        Table table = currentJoinTable.getTableClass().getAnnotation(Table.class);
+        joinOns.add(String.format("%s.%s%s%s", currentJoinTable.getAsNameOrName(), ModelClassUtils.getTableColumnName(table, logicDeleteField), CompareEnum.NE.getKey(coverXml), IcParamsConsts.PARAMETER_LOGIC_DELETE_GET));
     }
 
 
@@ -1117,6 +1138,13 @@ public class SqlWrapper implements Serializable {
         List<String> resList = new ArrayList<>();
         // 嵌套条件
         for (QueryTable<?> childrenQueryTable : queryTable.getChildrenQueryTables()) {
+            if (isWhereJoinMarker(childrenQueryTable)) {
+                if (!resList.isEmpty()) {
+                    resList.add(childrenQueryTable.getWhereJoinType().key);
+                }
+                continue;
+            }
+            List<String> childParts = new ArrayList<>();
 
             if (!childrenQueryTable.getWheres().isEmpty()) {
                 List<String> childWheres = new ArrayList<>();
@@ -1126,15 +1154,32 @@ public class SqlWrapper implements Serializable {
                 }
                 SafeAppendable builder = new SafeAppendable(new StringBuilder());
                 sqlClause(builder, "", childWheres, "", "", " AND ");
-                resList.add(builder.toString());
+                if (!builder.isEmpty()) {
+                    childParts.add(builder.toString());
+                }
             }
 
             if (childrenQueryTable.getChildrenQueryTables() != null) {
-                resList.add(childrenQueryTable.getWhereJoinType().key);
                 // 遍历下一个条件
-                resList.add(handelChileQuery(childrenQueryTable, true));
+                String childSql = handelChileQuery(childrenQueryTable, true);
+                if (StringUtils.hasLength(childSql)) {
+                    childParts.add(childSql);
+                }
+            }
+            if (!childParts.isEmpty()) {
+                if (!resList.isEmpty() && !isWhereJoinType(resList.getLast())) {
+                    resList.add(queryTable.getWhereJoinType().key);
+                }
+                if (childParts.size() == 1) {
+                    resList.add(childParts.getFirst());
+                } else {
+                    SafeAppendable childBuilder = new SafeAppendable(new StringBuilder());
+                    sqlClause(childBuilder, "", childParts, "", "", " AND ");
+                    resList.add(childBuilder.toString());
+                }
             }
         }
+        trimTrailingWhereJoinTypes(resList);
         // 清空子查询
         queryTable.setChildrenQueryTables(null);
         SafeAppendable builder = new SafeAppendable(new StringBuilder());
@@ -1144,6 +1189,24 @@ public class SqlWrapper implements Serializable {
             sqlClause(builder, "", resList, "", "", " AND ");
         }
         return builder.toString();
+    }
+
+    private boolean isWhereJoinMarker(QueryTable<?> queryTable) {
+        return queryTable.getFunc() == null
+                && queryTable.getWhereJoinType() != null
+                && queryTable.getChildrenQueryTables() != null
+                && queryTable.getChildrenQueryTables().length == 0
+                && queryTable.getWheres().isEmpty();
+    }
+
+    private boolean isWhereJoinType(String part) {
+        return part.equals(WhereJoinType.AND.key) || part.equals(WhereJoinType.OR.key);
+    }
+
+    private void trimTrailingWhereJoinTypes(List<String> parts) {
+        while (!parts.isEmpty() && isWhereJoinType(parts.getLast())) {
+            parts.removeLast();
+        }
     }
 
     /**
@@ -1215,7 +1278,7 @@ public class SqlWrapper implements Serializable {
                 if (condition.getSqlWrapper() != null) {
                     return column + condition.getCompare().getKey(coverXml) + "(" + getAndMixSql(condition.getSqlWrapper()) + ")";
                 } else if (condition.getSelectWrapper() != null) {
-                    return column + condition.getCompare().getKey(coverXml) + "(" + condition.getSelectWrapper().sql() + ")";
+                    return column + condition.getCompare().getKey(coverXml) + "(" + getAndMixSql(condition.getSelectWrapper().sqlWrapper) + ")";
                 }
             }
             String paramKey = addParam(condition);

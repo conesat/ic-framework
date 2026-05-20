@@ -363,8 +363,7 @@ public class MapTransfer {
                 String tableColumnName = ModelClassUtils.getTableColumnName(table, field);
                 Assert.notNull(tableColumnName, "Table column name cannot be null");
                 QueryField<?> whereQueryField = new QueryField<>(new QueryTable<>(relationJoinInfoFirst.getJoinTable()),
-                        tableColumnName);
-                whereQueryField.as(RELATION_FIELD_PREFIX + relationJoinInfoFirst.getSelfField());
+                        tableColumnName).as(RELATION_FIELD_PREFIX + relationJoinInfoFirst.getSelfField());
                 RelationJoinInfo lastJoinInfo = relation.relationJoinInfos.getLast();
                 Class<?> resultType = lastJoinInfo.getJoinTable();
                 FromWrapper fromWrapper;

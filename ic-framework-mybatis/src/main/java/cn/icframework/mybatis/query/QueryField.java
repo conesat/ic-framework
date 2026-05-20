@@ -56,8 +56,9 @@ public class QueryField<QT extends QueryTable<?>> {
      * @return
      */
     public QueryField<QT> as(String as) {
-        this.asName = as;
-        return this;
+        QueryField<QT> queryField = copy();
+        queryField.setAsName(as);
+        return queryField;
     }
 
     /**
@@ -67,8 +68,18 @@ public class QueryField<QT extends QueryTable<?>> {
      * @return
      */
     public <T> QueryField as(LambdaGetter<T> field) {
-        this.asName = LambdaUtils.getFieldName(field);
-        return this;
+        QueryField<QT> queryField = copy();
+        queryField.setAsName(LambdaUtils.getFieldName(field));
+        return queryField;
+    }
+
+    private QueryField<QT> copy() {
+        QueryField<QT> queryField = new QueryField<>();
+        queryField.setTableColumn(tableColumn);
+        queryField.setAsName(asName);
+        queryField.setFunc(func);
+        queryField.setTable(table);
+        return queryField;
     }
 
     /**

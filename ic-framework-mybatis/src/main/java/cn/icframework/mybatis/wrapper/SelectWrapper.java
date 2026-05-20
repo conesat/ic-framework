@@ -48,7 +48,9 @@ public class SelectWrapper {
      */
     public FromWrapper FROM(QueryTable<?>... queryTables) {
         sqlWrapper.from(queryTables);
-        return new FromWrapper(sqlWrapper);
+        FromWrapper fromWrapper = new FromWrapper(sqlWrapper);
+        this.sqlWrapper = fromWrapper;
+        return fromWrapper;
     }
 
     /**
@@ -57,9 +59,11 @@ public class SelectWrapper {
      * @param sqlWrapper 子查询
      * @return SqlWrapper
      */
-    public FromWrapper FROM(SqlWrapper sqlWrapper) {
-        sqlWrapper.from(sqlWrapper);
-        return new FromWrapper(sqlWrapper);
+    public FromWrapper FROM(SqlWrapper subQuery) {
+        this.sqlWrapper.from(subQuery);
+        FromWrapper fromWrapper = new FromWrapper(this.sqlWrapper);
+        this.sqlWrapper = fromWrapper;
+        return fromWrapper;
     }
 
 
@@ -71,7 +75,9 @@ public class SelectWrapper {
      */
     public FromWrapper FROM_ENTITY(Class<?>... entities) {
         sqlWrapper.fromEntity(entities);
-        return new FromWrapper(sqlWrapper);
+        FromWrapper fromWrapper = new FromWrapper(sqlWrapper);
+        this.sqlWrapper = fromWrapper;
+        return fromWrapper;
     }
 
     /**
@@ -83,7 +89,9 @@ public class SelectWrapper {
     public FromWrapper FROM_ENTITY(boolean coverXml, Class<?>... entities) {
         sqlWrapper.setCoverXml(coverXml);
         sqlWrapper.fromEntity(entities);
-        return new FromWrapper(sqlWrapper);
+        FromWrapper fromWrapper = new FromWrapper(sqlWrapper);
+        this.sqlWrapper = fromWrapper;
+        return fromWrapper;
     }
 
     /**

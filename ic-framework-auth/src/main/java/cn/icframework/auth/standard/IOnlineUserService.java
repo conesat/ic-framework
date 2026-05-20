@@ -65,6 +65,19 @@ public interface IOnlineUserService {
         JWTUtils.recoveryUserOnlineStatus(sessionId);
     }
 
+    /**
+     * 缓存丢失时尝试从持久化在线记录恢复会话。
+     * 后台重启或本地缓存失效时，JWT仍可能有效，此时由实现类判断在线记录是否仍存在且未过期。
+     *
+     * @param userId 用户ID
+     * @param sessionId 会话唯一标识
+     * @param tokenExpireTime JWT自身过期时间
+     * @return 是否恢复成功
+     */
+    default boolean recoverOnlineSession(String userId, Long sessionId, long tokenExpireTime) {
+        return false;
+    }
+
     @Getter
     @Setter
     class OnlineInfo {

@@ -104,8 +104,7 @@ import static cn.icframework.mybatis.wrapper.FunctionWrapper.EXISTS;
 import static cn.icframework.mybatis.wrapper.FunctionWrapper.NOT_EXISTS;
 
 UserDef userDef = UserDef.table();
-UserRoleDef userRoleDef = UserRoleDef.table();
-userRoleDef.as("ur");
+UserRoleDef userRoleDef = UserRoleDef.table().alias("ur");
 
 /**
  * select *
@@ -194,6 +193,45 @@ SqlWrapper sqlWrapper = SELECT(userDef, roleDef.name.as("roleName"))
 ```
 
 如果 join 条件非常复杂，建议把逻辑收进 `WrapperBuilder`，这样 API 层会更干净。
+
+表别名使用 `alias(...)`，它会返回一个新的 `Def` 副本，不会修改原来的 `Def`。复杂 SQL 里建议显式接住返回值：
+
+```java
+RoleDef roleDef = RoleDef.table();
+RoleDef role = roleDef.alias("role");
+
+SqlWrapper sqlWrapper = SELECT(role.name.as("roleName"))
+        .FROM(role);
+
+// roleDef 仍然没有表别名，后续可以继续安全复用
+SqlWrapper rawSqlWrapper = SELECT(roleDef.name)
+        .FROM(roleDef);
+```
+
+字段别名只作用于 `as(...)` 返回的字段副本，不会污染原来的 `xxxDef` 字段。比如 `roleDef.name.as("roleName")` 只影响这次 `SELECT`，后面继续用 `roleDef.name` 做 `WHERE / ORDER_BY / COUNT` 时仍然按原字段 `name` 处理。这样同一个 `Def` 可以安全地在复杂查询和后续查询里复用。
+
+```java
+UserDef userDef = UserDef.table();
+RoleDef roleDef = RoleDef.table();
+
+SqlWrapper listSql = SELECT(
+        userDef.id.as("userId"),
+        roleDef.name.as("roleName")
+)
+        .FROM(userDef)
+        .LEFT_JOIN(roleDef).ON(roleDef.id.eq(userDef.roleId));
+
+SqlWrapper countSql = SELECT(COUNT(userDef.id).as("total"))
+        .FROM(userDef)
+        .ORDER_BY_DESC(userDef.id);
+```
+
+如果需要复用带别名的字段，请显式接住返回值：
+
+```java
+QueryField<?> userId = userDef.id.as("userId");
+SqlWrapper sqlWrapper = SELECT(userId).FROM(userDef);
+```
 
 ## 6. 条件分组：AND / OR 嵌套
 

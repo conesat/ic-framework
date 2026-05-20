@@ -430,9 +430,19 @@ public class JWTUtils {
             JWTVerifier verifier = JWT.require(algorithm).build();
             DecodedJWT decodedJWT = verifier.verify(token);
             // 判断token是否还有效
-            Object object = CacheUtils.get(TOKEN_CACHE_SESSION_ID_PREFIX + getTokenSessionId(decodedJWT));
+            Long sessionId = getTokenSessionId(decodedJWT);
+            Object object = CacheUtils.get(TOKEN_CACHE_SESSION_ID_PREFIX + sessionId);
             if (object == null) {
-                return null;
+                if (onlineUserService == null || decodedJWT.getExpiresAt() == null) {
+                    return null;
+                }
+                boolean recovered = onlineUserService.recoverOnlineSession(
+                        decodedJWT.getSubject(),
+                        sessionId,
+                        decodedJWT.getExpiresAt().getTime());
+                if (!recovered) {
+                    return null;
+                }
             }
             return decodedJWT;
         } catch (IllegalArgumentException | JWTVerificationException e) {

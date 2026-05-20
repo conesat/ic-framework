@@ -242,6 +242,28 @@ public class Wrapper {
     }
 
     /**
+     * 子查询重命名（AS），用于 select 查询结果重命名。
+     *
+     * @param sqlWrapper 子查询
+     * @param column 新的列名
+     * @return SqlWrapper
+     */
+    public static SqlWrapper AS(SqlWrapper sqlWrapper, String column) {
+        return sqlWrapper.AS(column);
+    }
+
+    /**
+     * 子查询重命名（AS），用于 select 查询结果重命名。
+     *
+     * @param selectWrapper 子查询
+     * @param column 新的列名
+     * @return SqlWrapper
+     */
+    public static SqlWrapper AS(SelectWrapper selectWrapper, String column) {
+        return selectWrapper.AS(column);
+    }
+
+    /**
      * 字段重命名（AS），用于 select 查询结果重命名，支持 LambdaGetter。
      *
      * @param object 字段对象
@@ -250,6 +272,28 @@ public class Wrapper {
      */
     public static <T> QueryField<?> AS(Object object, LambdaGetter<T> lambdaGetter) {
         return QueryField.of(object).as(ModelClassUtils.getTableColumnName(LambdaUtils.getField(lambdaGetter)));
+    }
+
+    /**
+     * 子查询重命名（AS），用于 select 查询结果重命名，支持 LambdaGetter。
+     *
+     * @param sqlWrapper 子查询
+     * @param lambdaGetter lambda 表达式获取字段
+     * @return SqlWrapper
+     */
+    public static <T> SqlWrapper AS(SqlWrapper sqlWrapper, LambdaGetter<T> lambdaGetter) {
+        return sqlWrapper.AS(ModelClassUtils.getTableColumnName(LambdaUtils.getField(lambdaGetter)));
+    }
+
+    /**
+     * 子查询重命名（AS），用于 select 查询结果重命名，支持 LambdaGetter。
+     *
+     * @param selectWrapper 子查询
+     * @param lambdaGetter lambda 表达式获取字段
+     * @return SqlWrapper
+     */
+    public static <T> SqlWrapper AS(SelectWrapper selectWrapper, LambdaGetter<T> lambdaGetter) {
+        return selectWrapper.AS(ModelClassUtils.getTableColumnName(LambdaUtils.getField(lambdaGetter)));
     }
 
 }

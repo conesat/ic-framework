@@ -99,6 +99,53 @@ SqlWrapper sqlWrapper = SELECT()
         .WHERE(userDef.id.eq(1));
 ```
 
+## 字段别名
+
+`QueryField.as(...)` 用于给当前查询结果字段起别名。它会返回一个新的字段对象，不会修改 `UserDef.table()` 里原本的字段定义。
+
+```java
+UserDef userDef = UserDef.table();
+
+// 推荐：直接使用 as(...) 返回值
+SqlWrapper sqlWrapper = SELECT(
+        userDef.id.as("userId"),
+        userDef.name.as("userName")
+)
+        .FROM(userDef);
+
+// userDef.id 本身仍然是 id，后续复用不会继承 userId 这个别名
+SqlWrapper nextSqlWrapper = SELECT(userDef)
+        .FROM(userDef)
+        .ORDER_BY_DESC(userDef.id);
+```
+
+不要依赖下面这种写法：
+
+```java
+userDef.id.as("userId");
+SELECT(userDef.id).FROM(userDef);
+```
+
+上面第一行返回的新字段没有被接收，别名不会生效。需要别名时，请把 `as(...)` 放进 `SELECT(...)`、函数或变量里。
+
+## 表别名
+
+表 `Def` 起别名统一使用 `alias(...)`，不再提供 `def.as(...)`。`alias(...)` 同样会返回新的 `Def` 副本，不会修改原对象。
+
+```java
+UserDef userDef = UserDef.table();
+UserRoleDef userRoleDef = UserRoleDef.table();
+UserRoleDef ur = userRoleDef.alias("ur");
+
+SqlWrapper sqlWrapper = SELECT(userDef.id, ur.name.as("roleName"))
+        .FROM(userDef)
+        .LEFT_JOIN(ur).ON(ur.id.eq(userDef.id));
+
+// userRoleDef 仍然没有别名，可以继续作为 user_role 使用
+SqlWrapper rawSqlWrapper = SELECT(userRoleDef.id, userRoleDef.name)
+        .FROM(userRoleDef);
+```
+
 ## 排序
 
 ```java
@@ -178,4 +225,3 @@ public interface SqlFunctionProvider {
     QueryField<?> distinct(String field);
 }
 ```
-
