@@ -301,7 +301,7 @@ public class SqlProvider {
      */
     public static String count(Map<String, Object> params, ProviderContext context) {
         SqlWrapper sqlWrapper = getSelectWrapper(params);
-        return sqlWrapper.countSql();
+        return String.format("select count(1) as `count` from (%s) as c", sqlWrapper.countSql());
     }
 
     /**
