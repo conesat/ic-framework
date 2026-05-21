@@ -58,6 +58,7 @@ public class DDLHelper {
     private Connection conn;
 
     private List<String> sqlAfterRunList = new ArrayList<>();
+    private List<Runnable> afterRunSuccessList = new ArrayList<>();
 
     public final static String SQL_CREATE_TEMPLATE = """
             CREATE TABLE IF NOT EXISTS `#TABLE_NAME` (
@@ -81,7 +82,11 @@ public class DDLHelper {
                 log.info(sql);
                 statement.execute(sql);
             }
+            for (Runnable runnable : afterRunSuccessList) {
+                runnable.run();
+            }
             sqlAfterRunList = null;
+            afterRunSuccessList = null;
         } catch (Exception e) {
             log.error("sql执行失败", e);
         }
@@ -92,6 +97,10 @@ public class DDLHelper {
         } catch (SQLException e) {
             log.error("关闭连接失败", e);
         }
+    }
+
+    public void afterRunSuccess(Runnable runnable) {
+        afterRunSuccessList.add(runnable);
     }
 
     /**
@@ -204,7 +213,7 @@ public class DDLHelper {
                 referencesColumn = ModelClassUtils.getTableColumnName(table, ModelClassUtils.getIdField(fa.getAnnotation().references()));
             }
             String onDelete = Objects.equals(fa.getAnnotation().onDelete(), ForeignKeyAction.NONE) ? "" : " ON DELETE " + fa.getAnnotation().onDelete();
-            String onUpdate = Objects.equals(fa.getAnnotation().onDelete(), ForeignKeyAction.NONE) ? "" : " ON UPDATE " + fa.getAnnotation().onDelete();
+            String onUpdate = Objects.equals(fa.getAnnotation().onUpdate(), ForeignKeyAction.NONE) ? "" : " ON UPDATE " + fa.getAnnotation().onUpdate();
             foreignKeySet.add(String.format("CONSTRAINT `%s` FOREIGN KEY (`%s`) REFERENCES `%s` (`%s`)%s%s",
                     fkName,
                     ModelClassUtils.getTableColumnName(table, fa.getField()),
@@ -244,35 +253,21 @@ public class DDLHelper {
         // 创建外键
         Set<String> foreignKeySet = new HashSet<>();
         Set<String> foreignKeyNameSet = getForeignKeySet(entityType, table, fieldAndAnnotations, foreignKeySet);
-        for (String key : foreignKeySet) {
-            foreignKeySortMap.put(key.toLowerCase().replaceAll(" ", "").trim(), key);
+        for (String foreignKeySql : foreignKeySet) {
+            foreignKeySortMap.put(normalizeForeignKeySql(foreignKeySql), foreignKeySql);
         }
 
         // 获取已有外键
-        ResultSet resultSet = statement.executeQuery("show create table " + table.value() + ";");
         List<String> dropSqls = new ArrayList<>();
-        while (resultSet.next()) {
-            String ddl = resultSet.getString(2);
-            String[] split = ddl.split("\n");
-            for (String sql : split) {
-                sql = sql.replaceAll(" ", "").trim();
-                if (sql.endsWith(",")) {
-                    sql = sql.substring(0, sql.length() - 1);
-                }
-                if (!sql.startsWith("CONSTRAINT")) {
-                    continue;
-                }
-                String lowerCase = sql.toLowerCase();
-                if (foreignKeySortMap.containsKey(lowerCase)) {
-                    foreignKeySortMap.remove(lowerCase);
-                } else {
-                    sql = sql.substring("CONSTRAINT `".length() - 1);
-                    String fkName = sql.split("`")[0];
-                    foreignKeyNameSet.remove(fkName);
-                    String dropSql = String.format("ALTER TABLE %s DROP FOREIGN KEY %s;", table.value(), fkName);
-                    dropSqls.add(dropSql);
-                }
+        Map<String, String> existForeignKeyMap = getExistForeignKeyMap(statement, table.value());
+        for (Map.Entry<String, String> entry : existForeignKeyMap.entrySet()) {
+            String normalizedSql = normalizeForeignKeySql(entry.getValue());
+            if (foreignKeySortMap.containsKey(normalizedSql)) {
+                foreignKeySortMap.remove(normalizedSql);
+                continue;
             }
+            String dropSql = String.format("ALTER TABLE %s DROP FOREIGN KEY %s;", table.value(), entry.getKey());
+            dropSqls.add(dropSql);
         }
         sqlAfterRunList.addAll(dropSqls);
         for (Map.Entry<String, String> stringStringEntry : foreignKeySortMap.entrySet()) {
@@ -280,6 +275,73 @@ public class DDLHelper {
             sqlAfterRunList.add(sql);
         }
         return foreignKeyNameSet;
+    }
+
+    private Map<String, String> getExistForeignKeyMap(Statement statement, String tableName) throws SQLException {
+        String sql = """
+                SELECT
+                  kcu.CONSTRAINT_NAME,
+                  kcu.COLUMN_NAME,
+                  kcu.REFERENCED_TABLE_NAME,
+                  kcu.REFERENCED_COLUMN_NAME,
+                  rc.DELETE_RULE,
+                  rc.UPDATE_RULE
+                FROM information_schema.KEY_COLUMN_USAGE kcu
+                JOIN information_schema.REFERENTIAL_CONSTRAINTS rc
+                  ON rc.CONSTRAINT_SCHEMA = kcu.CONSTRAINT_SCHEMA
+                 AND rc.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME
+                 AND rc.TABLE_NAME = kcu.TABLE_NAME
+                WHERE kcu.TABLE_SCHEMA = DATABASE()
+                  AND kcu.TABLE_NAME = '%s'
+                  AND kcu.REFERENCED_TABLE_NAME IS NOT NULL
+                ORDER BY kcu.CONSTRAINT_NAME, kcu.ORDINAL_POSITION
+                """.formatted(tableName);
+        ResultSet resultSet = statement.executeQuery(sql);
+        Map<String, List<ForeignKeyColumn>> columnMap = new HashMap<>();
+        while (resultSet.next()) {
+            String fkName = resultSet.getString("CONSTRAINT_NAME");
+            ForeignKeyColumn column = new ForeignKeyColumn();
+            column.setColumnName(resultSet.getString("COLUMN_NAME"));
+            column.setReferencedTableName(resultSet.getString("REFERENCED_TABLE_NAME"));
+            column.setReferencedColumnName(resultSet.getString("REFERENCED_COLUMN_NAME"));
+            column.setDeleteRule(resultSet.getString("DELETE_RULE"));
+            column.setUpdateRule(resultSet.getString("UPDATE_RULE"));
+            columnMap.computeIfAbsent(fkName, k -> new ArrayList<>()).add(column);
+        }
+        Map<String, String> foreignKeyMap = new HashMap<>();
+        for (Map.Entry<String, List<ForeignKeyColumn>> entry : columnMap.entrySet()) {
+            List<ForeignKeyColumn> columns = entry.getValue();
+            ForeignKeyColumn first = columns.get(0);
+            String columnNames = columns.stream()
+                    .map(ForeignKeyColumn::getColumnName)
+                    .map(name -> "`" + name + "`")
+                    .collect(Collectors.joining(","));
+            String referencedColumnNames = columns.stream()
+                    .map(ForeignKeyColumn::getReferencedColumnName)
+                    .map(name -> "`" + name + "`")
+                    .collect(Collectors.joining(","));
+            String onDelete = "NONE".equalsIgnoreCase(first.getDeleteRule()) ? "" : " ON DELETE " + first.getDeleteRule();
+            String onUpdate = "NONE".equalsIgnoreCase(first.getUpdateRule()) ? "" : " ON UPDATE " + first.getUpdateRule();
+            foreignKeyMap.put(entry.getKey(), String.format("CONSTRAINT `%s` FOREIGN KEY (%s) REFERENCES `%s` (%s)%s%s",
+                    entry.getKey(),
+                    columnNames,
+                    first.getReferencedTableName(),
+                    referencedColumnNames,
+                    onDelete,
+                    onUpdate));
+        }
+        return foreignKeyMap;
+    }
+
+    private String normalizeForeignKeySql(String sql) {
+        return sql.toLowerCase()
+                .replaceAll("\\s+", "")
+                .replace("`", "")
+                .replace("ondeletenoaction", "")
+                .replace("ondeleterestrict", "")
+                .replace("onupdatenoaction", "")
+                .replace("onupdaterestrict", "")
+                .trim();
     }
 
 
@@ -562,6 +624,16 @@ public class DDLHelper {
         return type.toString();
     }
 
+
+    @Getter
+    @Setter
+    static class ForeignKeyColumn {
+        private String columnName;
+        private String referencedTableName;
+        private String referencedColumnName;
+        private String deleteRule;
+        private String updateRule;
+    }
 
     @Getter
     @Setter

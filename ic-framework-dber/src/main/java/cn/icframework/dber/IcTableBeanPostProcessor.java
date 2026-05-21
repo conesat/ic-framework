@@ -1,7 +1,11 @@
 package cn.icframework.dber;
 
 import cn.icframework.dber.cnnotation.EnableEntityDDL;
+import cn.icframework.mybatis.annotation.ForeignKey;
+import cn.icframework.mybatis.annotation.Id;
 import cn.icframework.mybatis.annotation.Table;
+import cn.icframework.mybatis.annotation.TableField;
+import cn.icframework.mybatis.annotation.Version;
 import cn.icframework.core.utils.Assert;
 import cn.icframework.mybatis.mapper.BasicMapper;
 import lombok.AllArgsConstructor;
@@ -17,7 +21,10 @@ import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Map;
 import cn.icframework.dber.utils.DDLHashCacheUtils;
 import java.security.MessageDigest;
@@ -54,7 +61,7 @@ public class IcTableBeanPostProcessor implements BeanPostProcessor {
                 Type entityType = ((ParameterizedType) (c.getGenericInterfaces()[0])).getActualTypeArguments()[0];
                 Table table = ((Class<?>) entityType).getAnnotation(Table.class);
                 if (table != null && table.autoDDL()) {
-                    // 1. 计算实体结构hash（将所有字段名和类型拼接后做MD5，唯一标识结构变化）
+                    // 1. 计算实体结构hash（字段和DDL相关注解变化都会触发同步）
                     String entityHash = calcEntityHash((Class<?>) entityType);
                     // 2. 从本地缓存读取上次的hash
                     String cachedHash = DDLHashCacheUtils.getHash(((Class<?>) entityType).getName());
@@ -66,8 +73,8 @@ public class IcTableBeanPostProcessor implements BeanPostProcessor {
                     // 4. 执行ddl（表结构同步）
                     try {
                         ddlHelper.runDDL((Class<?>) entityType);
-                        // 5. 更新本地缓存hash
-                        DDLHashCacheUtils.setHash(((Class<?>) entityType).getName(), entityHash);
+                        // 5. 延迟到所有DDL执行成功后再更新hash，避免外键等延后SQL失败后被缓存跳过
+                        ddlHelper.afterRunSuccess(() -> DDLHashCacheUtils.setHash(((Class<?>) entityType).getName(), entityHash));
                     } catch (SQLException e) {
                         SQLException sqlException = new SQLException(((Class<?>) entityType).getName() + " DDL执行出错:" + e.getMessage());
                         sqlException.setStackTrace(e.getStackTrace());
@@ -102,18 +109,25 @@ public class IcTableBeanPostProcessor implements BeanPostProcessor {
     }
 
     /**
-     * 计算实体类结构的唯一hash值（字段名+类型，可扩展加注解等）
+     * 计算实体类结构的唯一hash值。
+     * 字段名、字段类型和DDL相关注解都会影响最终结果，避免外键引用表等注解变化被缓存跳过。
      * 用于判断结构是否发生变化，决定是否需要执行DDL
      */
     private String calcEntityHash(Class<?> clazz) {
         StringBuilder sb = new StringBuilder();
-        for (Field field : clazz.getDeclaredFields()) {
-            sb.append(field.getName()).append(":").append(field.getType().getName());
-            // 可加注解等
+        appendClassDdlMeta(sb, clazz);
+        Class<?> current = clazz;
+        while (current != null && current != Object.class) {
+            Field[] fields = current.getDeclaredFields();
+            Arrays.sort(fields, Comparator.comparing(Field::getName));
+            for (Field field : fields) {
+                appendFieldDdlMeta(sb, field);
+            }
+            current = current.getSuperclass();
         }
         try {
             MessageDigest md = MessageDigest.getInstance("MD5");
-            byte[] digest = md.digest(sb.toString().getBytes());
+            byte[] digest = md.digest(sb.toString().getBytes(StandardCharsets.UTF_8));
             StringBuilder hex = new StringBuilder();
             for (byte b : digest) {
                 hex.append(String.format("%02x", b));
@@ -122,5 +136,62 @@ public class IcTableBeanPostProcessor implements BeanPostProcessor {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void appendClassDdlMeta(StringBuilder sb, Class<?> clazz) {
+        Table table = clazz.getAnnotation(Table.class);
+        if (table == null) {
+            return;
+        }
+        sb.append("table{")
+                .append("value=").append(table.value())
+                .append(",schema=").append(table.schema())
+                .append(",camelToUnderline=").append(table.camelToUnderline())
+                .append(",comment=").append(table.comment())
+                .append(",autoDDL=").append(table.autoDDL())
+                .append('}');
+    }
+
+    private void appendFieldDdlMeta(StringBuilder sb, Field field) {
+        sb.append("field{")
+                .append("name=").append(field.getName())
+                .append(",type=").append(field.getType().getName());
+
+        TableField tableField = field.getAnnotation(TableField.class);
+        if (tableField != null) {
+            sb.append(",tableField[")
+                    .append("value=").append(tableField.value())
+                    .append(",onInsertValue=").append(tableField.onInsertValue())
+                    .append(",onUpdateValue=").append(tableField.onUpdateValue())
+                    .append(",type=").append(tableField.type())
+                    .append(",comment=").append(tableField.comment())
+                    .append(",notNull=").append(tableField.notNull())
+                    .append(",length=").append(tableField.length())
+                    .append(",fraction=").append(tableField.fraction())
+                    .append(",defaultValue=").append(tableField.defaultValue())
+                    .append(']');
+        }
+
+        Id id = field.getAnnotation(Id.class);
+        if (id != null) {
+            sb.append(",id[").append("idType=").append(id.idType()).append(']');
+        }
+
+        Version version = field.getAnnotation(Version.class);
+        if (version != null) {
+            sb.append(",version");
+        }
+
+        ForeignKey foreignKey = field.getAnnotation(ForeignKey.class);
+        if (foreignKey != null) {
+            sb.append(",foreignKey[")
+                    .append("name=").append(foreignKey.name())
+                    .append(",references=").append(foreignKey.references().getName())
+                    .append(",referencesColumn=").append(foreignKey.referencesColumn())
+                    .append(",onDelete=").append(foreignKey.onDelete())
+                    .append(",onUpdate=").append(foreignKey.onUpdate())
+                    .append(']');
+        }
+        sb.append('}');
     }
 }
