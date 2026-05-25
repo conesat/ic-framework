@@ -2,6 +2,7 @@ package cn.icframework.auth.processor;
 
 import cn.icframework.auth.annotation.RequireAuth;
 import cn.icframework.auth.entity.PermissionGroupInit;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,6 +42,16 @@ public class PermissionHelper {
      * 这里保存所有接口对应的权限ID集合，用于鉴权时优先进行数字匹配。
      */
     private static final Map<String, Set<Long>> METHOD_PERMISSION_ID_SET = new HashMap<>();
+
+    /**
+     * 重置扫描到的权限数据。
+     * 启动初始化前会以Spring MVC实际注册的HandlerMapping为准重新扫描，避免代理或Bean初始化顺序导致漏扫。
+     */
+    public static void reset() {
+        PERMISSION_GROUP_INIT_MAP = new ArrayList<>();
+        METHOD_PERMISSION_GROUP_SET.clear();
+        METHOD_PERMISSION_ID_SET.clear();
+    }
 
     /**
      * 获取方法对应的权限集合。
@@ -91,11 +102,14 @@ public class PermissionHelper {
      * @param controllerClass controller类
      */
     public static void handle(Class<?> controllerClass) {
-        RestController restController = controllerClass.getDeclaredAnnotation(RestController.class);
+        if (PERMISSION_GROUP_INIT_MAP == null) {
+            PERMISSION_GROUP_INIT_MAP = new ArrayList<>();
+        }
+        RestController restController = AnnotationUtils.findAnnotation(controllerClass, RestController.class);
         if (restController == null) {
             return;
         }
-        RequestMapping requestMappingClass = controllerClass.getDeclaredAnnotation(RequestMapping.class);
+        RequestMapping requestMappingClass = AnnotationUtils.findAnnotation(controllerClass, RequestMapping.class);
         if (requestMappingClass == null) {
             return;
         }
@@ -146,7 +160,7 @@ public class PermissionHelper {
      * @param permissionGroupInit 权限分组对象
      */
     private static void handelPermissions(Class<?> controllerClass, PermissionGroupInit permissionGroupInit) {
-        RequireAuth requireAuth = controllerClass.getDeclaredAnnotation(RequireAuth.class);
+        RequireAuth requireAuth = AnnotationUtils.findAnnotation(controllerClass, RequireAuth.class);
         Method[] methods = controllerClass.getMethods();
         for (Method method : methods) {
             List<PermissionGroupInit.Permission> permissions = getPermissions(method, requireAuth);
@@ -169,7 +183,7 @@ public class PermissionHelper {
      */
     private static List<PermissionGroupInit.Permission> getPermissions(Method method, RequireAuth requireAuth) {
         List<PermissionGroupInit.Permission> res = new ArrayList<>();
-        RequireAuth methodRequireAuth = method.getDeclaredAnnotation(RequireAuth.class);
+        RequireAuth methodRequireAuth = AnnotationUtils.findAnnotation(method, RequireAuth.class);
         if (requireAuth == null && methodRequireAuth == null) {
             return res;
         }
@@ -187,31 +201,31 @@ public class PermissionHelper {
                     getMappingPaths(requestMapping.value(), requestMapping.path()));
         }
 
-        GetMapping getMapping = method.getDeclaredAnnotation(GetMapping.class);
+        GetMapping getMapping = AnnotationUtils.findAnnotation(method, GetMapping.class);
         if (getMapping != null) {
             addPermissions(res, getMapping.name(), requireUserType, ":get",
                     getMappingPaths(getMapping.value(), getMapping.path()));
         }
 
-        PostMapping postMapping = method.getDeclaredAnnotation(PostMapping.class);
+        PostMapping postMapping = AnnotationUtils.findAnnotation(method, PostMapping.class);
         if (postMapping != null) {
             addPermissions(res, postMapping.name(), requireUserType, ":post",
                     getMappingPaths(postMapping.value(), postMapping.path()));
         }
 
-        DeleteMapping deleteMapping = method.getDeclaredAnnotation(DeleteMapping.class);
+        DeleteMapping deleteMapping = AnnotationUtils.findAnnotation(method, DeleteMapping.class);
         if (deleteMapping != null) {
             addPermissions(res, deleteMapping.name(), requireUserType, ":delete",
                     getMappingPaths(deleteMapping.value(), deleteMapping.path()));
         }
 
-        PutMapping putMapping = method.getDeclaredAnnotation(PutMapping.class);
+        PutMapping putMapping = AnnotationUtils.findAnnotation(method, PutMapping.class);
         if (putMapping != null) {
             addPermissions(res, putMapping.name(), requireUserType, ":put",
                     getMappingPaths(putMapping.value(), putMapping.path()));
         }
 
-        PatchMapping patchMapping = method.getDeclaredAnnotation(PatchMapping.class);
+        PatchMapping patchMapping = AnnotationUtils.findAnnotation(method, PatchMapping.class);
         if (patchMapping != null) {
             addPermissions(res, patchMapping.name(), requireUserType, ":patch",
                     getMappingPaths(patchMapping.value(), patchMapping.path()));
