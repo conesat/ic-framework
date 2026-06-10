@@ -24,8 +24,8 @@ features:
     title: Spring Boot 3.5.3 +
     details: 最低支持 Spring Boot 3.5.3
   - icon: ☕️
-    title: Java 21+
-    details: 最低支持 JDK 21
+    title: Java 25+
+    details: 最低支持 JDK 25
   - icon: 📱
     title: 多端集成
     details: 支持中台、小程序、App

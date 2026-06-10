@@ -18,13 +18,13 @@
 
 建议至少准备：
 
-- JDK 21+
+- JDK 25+
 - Maven 3.9+
 - MySQL
 - Node.js
 - pnpm 或 npm
 
-当前仓库里有 Java 25 相关配置和说明，但如果你只是先把工程跑起来，优先保证本地 Maven 与 JDK 版本能匹配项目即可。
+当前仓库的 Maven 编译配置已使用 Java 25，建议本地 Maven 也运行在 JDK 25 或更高版本上。
 
 ## 3. 拉取示例工程
 

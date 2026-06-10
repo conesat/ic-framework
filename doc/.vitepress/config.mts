@@ -38,6 +38,7 @@ export default defineConfig({
                     { text: '后端开发结构', link: '/docs/start/java' },
                     { text: '前端开发结构', link: '/docs/start/vue' },
                     { text: '代码生成', link: '/docs/start/code_gen' },
+                    { text: 'Codex Skill 生成 CRUD', link: '/docs/start/codex_skill' },
                 ]
             },
             {
