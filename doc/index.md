@@ -14,8 +14,8 @@ hero:
       text: 📦 看整体结构
       link: /docs/introduction/structure
     - theme: alt
-      text: 🔗 后台预览 test/Aa123456
-      link: http://hotel.chinahg.top
+      text: 🔗 体验IcHotel admin/Aa123456
+      link: http://hotel.icframework.cn
   image:
     src: /imgs/logo.png
 
@@ -47,30 +47,20 @@ features:
 
 ---
 
-<div style="margin: 2em 0; text-align: center; font-size: 1.1em;">
-  <b>⚠️ 框架处于开发阶段，欢迎有兴趣的开发者参与完善！</b>
-</div>
+<DemoVideoPlayer src="https://ic-framework-public.oss-cn-beijing.aliyuncs.com/youa/video/playlist.m3u8" />
 
-## 📚 文档导航
-
-- [先跑通示例工程](/docs/start/import)
-- [理解项目结构](/docs/introduction/structure)
-- [按规范开发一个模块](/docs/start/java)
-- [理解 system 模块](/docs/system/system)
-- [学习 ic-mybatis 查询](/docs/ic-mybatis/query)
-
-## 🌐 社区与贡献
-
-- GitHub: [ic-framework](https://github.com/conesat/ic-framework)
-- Gitee: [ic-framework](https://gitee.com/ic-framework)
-- Issue/PR 欢迎提交
-- QQ邮箱：1092501244@qq.com
-
----
+<section class="ic-app-case">
+  <div class="ic-app-case__header">
+    <div>
+      <span>案例展示</span>
+      <h2>短线客 App 多端业务案例</h2>
+    </div>
+    <p>基于 IcFramework 开发的 App 案例，展示多端业务、内容承载和运营入口的集成能力。</p>
+  </div>
 
 <div class="ic-app-ad">
   <div class="ic-app-text">
-    <h3>IcFramework开发的app</h3>
+    <h3>短线客 App</h3>
     <div style="margin-top:30px">下载体验短线客App，AI智能炒股训练场！</div>
     <br>
     <a href="http://dxk.chinahg.top/" target="_blank" class="ic-app-btn">
@@ -81,6 +71,14 @@ features:
   </div>
   <img src="/imgs/dxk.png" alt="短线客App二维码" class="ic-app-qrcode">
 </div>
+</section>
+
+## 🌐 社区与贡献
+
+- GitHub: [ic-framework](https://github.com/conesat/ic-framework)
+- Gitee: [ic-framework](https://gitee.com/ic-framework)
+- Issue/PR 欢迎提交
+- QQ邮箱：1092501244@qq.com
 
 <div class="ic-footer">
   <span>让开发者专注业务，基础设施交给框架！</span>
