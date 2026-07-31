@@ -28,4 +28,8 @@ public class TableColumn {
      * 是否非空
      */
     private boolean notNull;
+    /**
+     * 是否自增
+     */
+    private boolean autoIncrement;
 }

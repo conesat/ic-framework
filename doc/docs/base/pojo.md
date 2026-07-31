@@ -32,32 +32,6 @@ public class DicDTO {
 
 ```
 
-```java
-
-/**
- * @author ic generator
- * @date 2023/08/07
- */
-@RestController
-@RequestMapping(value = Api.API_SYS + "/dic", name ="字典")
-@RequireAuth(userType = UserType.SYSTEM_USER)
-@RequiredArgsConstructor
-public class ApiSysDic extends BasicApi {
-    private final DicService dicService;
-
-    /**
-     * 编辑或者保存 用dto入参
-     */
-    @PutMapping(name ="编辑")
-    public Response<Void> edit(@Validated DicDTO dto) {
-        dicService.edit(dto);
-        return Response.success();
-    }
-}
-
-
-```
-
 
 ### VO
 
@@ -112,7 +86,7 @@ public class ApiSysDic extends BasicApi {
      * @param id [Serializable] *id
      * @return
      */
-    @GetMapping(value = "/item/{id}", name = "获取详情")
+    @GetMapping(value = "/{id}", name = "获取详情")
     public Response<DicVO> detail(@PathVariable("id") Serializable id) {
         return Response.success(dicService.selectById(id, DicVO.class));
     }

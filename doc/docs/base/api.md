@@ -36,10 +36,7 @@ public class ApiManageDept extends BasicApi {
      */
     @GetMapping(value = "/{id}", name = "获取详情")
     public Response<DeptVO> detail(@PathVariable("id") Serializable id) {
-        Map<String, RequestValue> params = new HashMap<>();
-        params.put("id", new RequestValue(new String[]{id.toString()}));
-        SqlWrapper sqlWrapper = deptWrapperBuilder.build(params);
-        return Response.success(deptService.selectOneAs(sqlWrapper, DeptVO.class));
+        return Response.success(dicService.selectById(id, DeptVO.class));
     }
 
     /**

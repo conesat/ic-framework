@@ -1,13 +1,17 @@
 package cn.icframework.dber;
 
 import cn.icframework.dber.cnnotation.EnableEntityDDL;
+import cn.icframework.mybatis.annotation.AutoView;
 import cn.icframework.mybatis.annotation.ForeignKey;
 import cn.icframework.mybatis.annotation.Id;
+import cn.icframework.mybatis.annotation.Index;
+import cn.icframework.mybatis.annotation.LogicDelete;
 import cn.icframework.mybatis.annotation.Table;
 import cn.icframework.mybatis.annotation.TableField;
 import cn.icframework.mybatis.annotation.Version;
 import cn.icframework.core.utils.Assert;
 import cn.icframework.mybatis.mapper.BasicMapper;
+import cn.icframework.mybatis.wrapper.SqlWrapper;
 import lombok.AllArgsConstructor;
 import org.apache.ibatis.binding.MapperProxy;
 import org.jetbrains.annotations.NotNull;
@@ -18,6 +22,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
@@ -60,28 +66,44 @@ public class IcTableBeanPostProcessor implements BeanPostProcessor {
                 Class<?> c = (Class<?>) f.get(mapperProxy);
                 Type entityType = ((ParameterizedType) (c.getGenericInterfaces()[0])).getActualTypeArguments()[0];
                 Table table = ((Class<?>) entityType).getAnnotation(Table.class);
-                if (table != null && table.autoDDL()) {
-                    // 1. 计算实体结构hash（字段和DDL相关注解变化都会触发同步）
-                    String entityHash = calcEntityHash((Class<?>) entityType);
-                    // 2. 从本地缓存读取上次的hash
-                    String cachedHash = DDLHashCacheUtils.getHash(((Class<?>) entityType).getName());
-                    // 3. 如果hash一致，说明结构未变，跳过DDL校验
-                    if (entityHash.equals(cachedHash)) {
-                        // hash一致，跳过DDL
-                        return bean;
-                    }
-                    // 4. 执行ddl（表结构同步）
-                    try {
-                        ddlHelper.runDDL((Class<?>) entityType);
-                        // 5. 延迟到所有DDL执行成功后再更新hash，避免外键等延后SQL失败后被缓存跳过
-                        ddlHelper.afterRunSuccess(() -> DDLHashCacheUtils.setHash(((Class<?>) entityType).getName(), entityHash));
-                    } catch (SQLException e) {
-                        SQLException sqlException = new SQLException(((Class<?>) entityType).getName() + " DDL执行出错:" + e.getMessage());
-                        sqlException.setStackTrace(e.getStackTrace());
-                        throw sqlException;
+                if (table != null) {
+                    if (table.autoDDL()) {
+                        // 1. 计算实体结构hash（字段和DDL相关注解变化都会触发同步）
+                        String entityHash = calcEntityHash((Class<?>) entityType);
+                        // 2. 从本地缓存读取上次的hash
+                        String cachedHash = DDLHashCacheUtils.getHash(((Class<?>) entityType).getName());
+                        // 3. 如果hash一致，说明结构未变，跳过DDL校验
+                        if (entityHash.equals(cachedHash)) {
+                            // hash一致，跳过DDL
+                            return bean;
+                        }
+                        // 4. 执行ddl（表结构同步）
+                        try {
+                            ddlHelper.runDDL((Class<?>) entityType);
+                            // 5. 延迟到所有DDL执行成功后再更新hash，避免外键等延后SQL失败后被缓存跳过
+                            ddlHelper.afterRunSuccess(() -> DDLHashCacheUtils.setHash(((Class<?>) entityType).getName(), entityHash));
+                        } catch (SQLException e) {
+                            SQLException sqlException = new SQLException(((Class<?>) entityType).getName() + " DDL执行出错:" + e.getMessage());
+                            sqlException.setStackTrace(e.getStackTrace());
+                            throw sqlException;
+                        }
+                    } else {
+                        // 判断是否视图
+                        Method[] methods = ((Class<?>) entityType).getMethods();
+                        for (Method method : methods) {
+                            if (method.getAnnotation(AutoView.class) != null && method.getReturnType() == SqlWrapper.class) {
+                                Object target = Modifier.isStatic(method.getModifiers())
+                                        ? null
+                                        : ((Class<?>) entityType).getDeclaredConstructor().newInstance();
+                                method.setAccessible(true);
+                                SqlWrapper sqlWrapper = (SqlWrapper) method.invoke(target);
+                                ddlHelper.runViewDDL((Class<?>) entityType, sqlWrapper);
+                                break;
+                            }
+                        }
                     }
                 }
-            } catch (NoSuchFieldException | IllegalAccessException | SQLException e) {
+            } catch (ReflectiveOperationException | SQLException e) {
                 throw new RuntimeException(e);
             }
         }
@@ -148,8 +170,41 @@ public class IcTableBeanPostProcessor implements BeanPostProcessor {
                 .append(",schema=").append(table.schema())
                 .append(",camelToUnderline=").append(table.camelToUnderline())
                 .append(",comment=").append(table.comment())
-                .append(",autoDDL=").append(table.autoDDL())
-                .append('}');
+                .append(",autoDDL=").append(table.autoDDL());
+
+        // Hash 必须覆盖所有会改变 DDL 的类级元数据，否则修改索引后可能被缓存直接跳过。
+        Index classIndex = clazz.getDeclaredAnnotation(Index.class);
+        if (classIndex != null) {
+            appendIndexDdlMeta(sb, classIndex);
+        }
+        for (Index index : table.indexes()) {
+            appendIndexDdlMeta(sb, index);
+        }
+
+        // Table.foreignKeys 当前没有携带本地字段信息，DDLHelper 仍以字段上的 @ForeignKey 为准；
+        // 这里纳入 hash，避免该配置变化被旧 hash 静默掩盖，后续扩展支持时也会触发同步。
+        for (ForeignKey foreignKey : table.foreignKeys()) {
+            appendForeignKeyDdlMeta(sb, foreignKey);
+        }
+        sb.append('}');
+    }
+
+    private void appendIndexDdlMeta(StringBuilder sb, Index index) {
+        sb.append(",index[")
+                .append("name=").append(index.name())
+                .append(",unique=").append(index.unique())
+                .append(",columns=").append(Arrays.toString(index.columns()))
+                .append(']');
+    }
+
+    private void appendForeignKeyDdlMeta(StringBuilder sb, ForeignKey foreignKey) {
+        sb.append(",foreignKey[")
+                .append("name=").append(foreignKey.name())
+                .append(",references=").append(foreignKey.references().getName())
+                .append(",referencesColumn=").append(foreignKey.referencesColumn())
+                .append(",onDelete=").append(foreignKey.onDelete())
+                .append(",onUpdate=").append(foreignKey.onUpdate())
+                .append(']');
     }
 
     private void appendFieldDdlMeta(StringBuilder sb, Field field) {
@@ -182,15 +237,15 @@ public class IcTableBeanPostProcessor implements BeanPostProcessor {
             sb.append(",version");
         }
 
+        // 逻辑删除字段会改变字段类型、默认值以及查询行为，必须参与结构 hash。
+        LogicDelete logicDelete = field.getAnnotation(LogicDelete.class);
+        if (logicDelete != null) {
+            sb.append(",logicDelete");
+        }
+
         ForeignKey foreignKey = field.getAnnotation(ForeignKey.class);
         if (foreignKey != null) {
-            sb.append(",foreignKey[")
-                    .append("name=").append(foreignKey.name())
-                    .append(",references=").append(foreignKey.references().getName())
-                    .append(",referencesColumn=").append(foreignKey.referencesColumn())
-                    .append(",onDelete=").append(foreignKey.onDelete())
-                    .append(",onUpdate=").append(foreignKey.onUpdate())
-                    .append(']');
+            appendForeignKeyDdlMeta(sb, foreignKey);
         }
         sb.append('}');
     }

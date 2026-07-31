@@ -1,6 +1,7 @@
 package cn.icframework.dber;
 
 import java.lang.reflect.Field;
+import java.util.UUID;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -15,6 +16,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import cn.icframework.mybatis.consts.IcParamsConsts;
+import cn.icframework.mybatis.wrapper.SqlWrapper;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.jetbrains.annotations.Nullable;
@@ -55,7 +58,10 @@ public class DDLHelper {
 
     @Resource
     private SqlSessionFactory sqlSessionFactory;
+    /** 当前 DDL 批次使用的连接。连接由 sqlSession 持有，不能只关闭 Connection。 */
     private Connection conn;
+    /** 通过 MyBatis 打开的会话，close 时必须和 Connection 一起释放。 */
+    private SqlSession sqlSession;
 
     private List<String> sqlAfterRunList = new ArrayList<>();
     private List<Runnable> afterRunSuccessList = new ArrayList<>();
@@ -70,33 +76,69 @@ public class DDLHelper {
             """;
 
     /**
-     * 收尾工作
+     * 收尾工作。
+     *
+     * <p>外键和索引变更会延迟到所有实体扫描完成后执行。延迟 SQL 只要有一条失败，
+     * 就不能执行成功回调（例如 DDL hash 写入），否则下一次启动会误以为数据库已经同步。</p>
      */
     public void close() {
-        if (conn == null) {
+        if (conn == null && sqlSession == null) {
             return;
         }
-        try (Statement statement = conn.createStatement()) {
-            // 关闭前将未添加的 sqlAfterRunList 执行
-            for (String sql : sqlAfterRunList) {
-                log.info(sql);
-                statement.execute(sql);
-            }
-            for (Runnable runnable : afterRunSuccessList) {
-                runnable.run();
-            }
-            sqlAfterRunList = null;
-            afterRunSuccessList = null;
-        } catch (Exception e) {
-            log.error("sql执行失败", e);
-        }
 
+        RuntimeException failure = null;
         try {
-            conn.close();
-            conn = null;
-        } catch (SQLException e) {
-            log.error("关闭连接失败", e);
+            if (conn != null) {
+                // 延迟 SQL 必须全部成功后，才能执行 afterRunSuccess 回调。
+                try (Statement statement = conn.createStatement()) {
+                    for (String sql : sqlAfterRunList) {
+                        log.info(sql);
+                        statement.execute(sql);
+                    }
+                }
+                for (Runnable runnable : afterRunSuccessList) {
+                    runnable.run();
+                }
+            }
+        } catch (Exception e) {
+            failure = new IllegalStateException("DDL 收尾阶段执行失败，应用启动已中止", e);
+            log.error("DDL 收尾阶段执行失败", e);
+        } finally {
+            sqlAfterRunList.clear();
+            afterRunSuccessList.clear();
+            try {
+                if (sqlSession != null) {
+                    // SqlSession 负责管理 MyBatis 连接；只关闭 Connection 会泄漏会话资源。
+                    sqlSession.close();
+                } else if (conn != null) {
+                    conn.close();
+                }
+            } catch (Exception e) {
+                log.error("关闭 DDL 数据库资源失败", e);
+                if (failure == null) {
+                    failure = new IllegalStateException("关闭 DDL 数据库资源失败", e);
+                } else {
+                    failure.addSuppressed(e);
+                }
+            } finally {
+                conn = null;
+                sqlSession = null;
+            }
         }
+        if (failure != null) {
+            throw failure;
+        }
+    }
+
+    /**
+     * 获取当前 DDL 批次的连接，并记录对应的 SqlSession，确保批次结束时完整释放资源。
+     */
+    private Connection getConnection() throws SQLException {
+        if (conn == null) {
+            sqlSession = sqlSessionFactory.openSession();
+            conn = sqlSession.getConnection();
+        }
+        return conn;
     }
 
     public void afterRunSuccess(Runnable runnable) {
@@ -109,33 +151,153 @@ public class DDLHelper {
      * @param entityType 实体类
      */
     public void runDDL(Class<?> entityType) throws SQLException {
-        if (conn == null) {
-            SqlSession sqlSession = sqlSessionFactory.openSession();
-            conn = sqlSession.getConnection();
+        Table table = entityType.getAnnotation(Table.class);
+        if (table == null || !StringUtils.hasText(table.value())) {
+            throw new IllegalArgumentException(entityType.getName() + " 必须配置 @Table.value");
         }
-        Statement statement = conn.createStatement();
-        Table table = entityType.getDeclaredAnnotation(Table.class);
-        String tableName = table.value();
+
+        Connection connection = getConnection();
+        String tableSchema = table.schema();
+        String catalog = connection.getCatalog();
+        try (Statement statement = connection.createStatement()) {
+            try {
+                if (StringUtils.hasLength(tableSchema)) {
+                    // 切换到实体对应的数据库，保证 SHOW/ALTER 等未限定 schema 的语句作用于目标库。
+                    statement.execute("USE " + quoteIdentifier(tableSchema));
+                }
+                try (ResultSet tableExist = statement.executeQuery(
+                        "SHOW TABLES LIKE " + quoteSqlLiteral(table.value()))) {
+                    if (tableExist.next()) {
+                        updateTable(entityType, statement, table);
+                    } else {
+                        createTable(entityType, statement, table);
+                    }
+                }
+            } finally {
+                if (StringUtils.hasLength(tableSchema) && StringUtils.hasText(catalog)) {
+                    // 一个 DDL 批次可能处理多个 schema，执行完当前实体后恢复原数据库。
+                    statement.execute("USE " + quoteIdentifier(catalog));
+                }
+            }
+        }
+    }
+    /**
+     * 根据实体上的 {@link Table} 和查询 SQL 创建或更新视图。
+     *
+     * <p>{@code sqlWrapper} 只需要提供视图的查询部分，例如
+     * {@code SELECT ... FROM ...}；视图名称和 {@code CREATE OR REPLACE VIEW}
+     * 由本方法统一补齐。</p>
+     *
+     * @param entityType 实体类
+     * @param sqlWrapper 视图查询 SQL
+     */
+    public void runViewDDL(Class<?> entityType, SqlWrapper sqlWrapper) throws SQLException {
+        if (sqlWrapper == null) {
+            throw new IllegalArgumentException("AutoView SQL 不能为空");
+        }
+
+        Table table = entityType.getAnnotation(Table.class);
+        if (table == null || !StringUtils.hasText(table.value())) {
+            throw new IllegalArgumentException(entityType.getName() + " 视图实体必须配置 @Table.value");
+        }
+
+        getConnection();
         String tableSchema = table.schema();
         String catalog = conn.getCatalog();
-        try {
+        try (Statement statement = conn.createStatement()) {
             if (StringUtils.hasLength(tableSchema)) {
-                // 切换到指定数据库进行操作
-                statement.execute("USE " + tableSchema + ";");
+                // 切换到视图对应的数据库，保证未带 schema 的 FROM/JOIN 仍然在目标库执行。
+                statement.execute("USE " + quoteIdentifier(tableSchema));
             }
-            ResultSet tableExist = statement.executeQuery("SHOW TABLES like '" + tableName + "';");
-            if (tableExist.next()) {
-                updateTable(entityType, statement, table);
-            } else {
-                createTable(entityType, statement, table);
+
+            String viewSql = renderViewSql(sqlWrapper);
+            if (!StringUtils.hasText(viewSql)) {
+                throw new IllegalArgumentException(entityType.getName() + " AutoView 返回的 SQL 不能为空");
             }
+            viewSql = trimSqlTerminator(viewSql);
+
+            String sql = "CREATE OR REPLACE VIEW "
+                    + quoteIdentifier(table.value())
+                    + " AS "
+                    + viewSql;
+            log.info(sql);
+            statement.execute(sql);
         } finally {
-            if (StringUtils.hasLength(tableSchema)) {
+            if (StringUtils.hasLength(tableSchema) && StringUtils.hasText(catalog)) {
                 // 切换回默认数据库
-                statement.execute("USE " + catalog + ";");
+                try (Statement statement = conn.createStatement()) {
+                    statement.execute("USE " + quoteIdentifier(catalog));
+                }
             }
-            statement.close();
         }
+    }
+
+    /**
+     * 将 SqlWrapper 中的 MyBatis 参数替换成视图定义可以持久化的 SQL 字面量。
+     *
+     * <p>视图定义不能保留 {@code #{params.xxx}} 这类运行时绑定参数，
+     * 因此 AutoView 中使用的参数必须在创建视图时固化到视图 SQL 中。</p>
+     */
+    private static String renderViewSql(SqlWrapper sqlWrapper) {
+        String sql = sqlWrapper.sql();
+        for (Map.Entry<String, Object> entry : sqlWrapper.getParams().entrySet()) {
+            String placeholder = IcParamsConsts.GET_PARAM_S(entry.getKey());
+            sql = sql.replace(placeholder, toSqlLiteral(entry.getValue()));
+        }
+        if (sql.contains("#{")) {
+            throw new IllegalArgumentException("AutoView SQL 中存在未解析的 MyBatis 参数: " + sql);
+        }
+        return sql;
+    }
+
+    private static String toSqlLiteral(Object value) {
+        if (value == null) {
+            return "NULL";
+        }
+        if (value instanceof IEnum iEnum) {
+            return Integer.toString(iEnum.code());
+        }
+        if (value instanceof Boolean bool) {
+            return bool ? "1" : "0";
+        }
+        if (value instanceof Number) {
+            return value.toString();
+        }
+        if (value instanceof byte[] bytes) {
+            StringBuilder hex = new StringBuilder(bytes.length * 2);
+            for (byte b : bytes) {
+                hex.append(String.format("%02x", b));
+            }
+            return "X'" + hex + "'";
+        }
+        if (value instanceof Enum<?> enumValue) {
+            return quoteSqlLiteral(enumValue.name());
+        }
+        if (value instanceof CharSequence
+                || value instanceof Character
+                || value instanceof UUID
+                || value instanceof java.util.Date
+                || value instanceof java.time.temporal.TemporalAccessor) {
+            return quoteSqlLiteral(value.toString());
+        }
+        // 未知类型按字符串处理，避免把对象的 toString 直接当成 SQL 片段执行。
+        return quoteSqlLiteral(value.toString());
+    }
+
+    private static String quoteSqlLiteral(String value) {
+        return "'" + value.replace("\\", "\\\\").replace("'", "''") + "'";
+    }
+
+    private static String quoteIdentifier(String identifier) {
+        return "`" + identifier.replace("`", "``") + "`";
+    }
+
+    private static String trimSqlTerminator(String sql) {
+        String result = sql.trim();
+        while (result.endsWith(";")) {
+            result = result.substring(0, result.length() - 1).trim();
+        }
+        return result;
     }
 
     /**
@@ -166,12 +328,13 @@ public class DDLHelper {
         String key = getTableFieldsContent(table, entityType, fields);
         // 生成建表语句
         String sql = SQL_CREATE_TEMPLATE
-                .replaceAll("#TABLE_NAME", table.value())
-                .replaceAll("#CONTENT", String.join(",\n", fields))
-                .replaceAll("#COMMENT", table.comment())
-                .replaceAll("#PRIMARY_KEY", StringUtils.hasLength(key) ? "," + key : "")
-                .replaceAll("#FOREIGN_KEY", "")
-                .replaceAll("#INDEX", indexSet.isEmpty() ? "" : "," + String.join(",\n", indexSet));
+                // 使用 replace 而不是 replaceAll，避免表名、注释中的 $ 或反斜杠被当作正则替换语法。
+                .replace("#TABLE_NAME", table.value())
+                .replace("#CONTENT", String.join(",\n", fields))
+                .replace("#COMMENT", table.comment().replace("\\", "\\\\").replace("'", "''"))
+                .replace("#PRIMARY_KEY", StringUtils.hasLength(key) ? "," + key : "")
+                .replace("#FOREIGN_KEY", "")
+                .replace("#INDEX", indexSet.isEmpty() ? "" : "," + String.join(",\n", indexSet));
         log.info(sql);
         statement.execute(sql);
         for (String fkSql : foreignKeySet) {
@@ -189,6 +352,12 @@ public class DDLHelper {
         }
     }
 
+    /**
+     * 根据字段上的 @ForeignKey 生成外键 SQL。
+     *
+     * <p>Table.foreignKeys() 目前没有描述本地字段的属性，因此无法独立生成外键；
+     * DDLHelper 统一以字段上的 @ForeignKey 为准。</p>
+     */
     private static Set<String> getForeignKeySet(Class<?> entityType, Table table,
                                                 List<ModelClassUtils.FieldAndAnnotation<ForeignKey>> fieldAndAnnotations,
                                                 Set<String> foreignKeySet) {
@@ -198,8 +367,8 @@ public class DDLHelper {
                     fa.getField().isAnnotationPresent(TableField.class) || fa.getField().isAnnotationPresent(Id.class),
                     entityType.getName() + ":" + fa.getField().getName() + "非数据库字段，不可添加外建注解");
 
-            Table annotation = fa.getAnnotation().references().getAnnotation(Table.class);
-            Assert.isNotNull(annotation, "外键引用的实体类未添加 @Table 注解");
+            Table referencedTable = fa.getAnnotation().references().getAnnotation(Table.class);
+            Assert.isNotNull(referencedTable, "外键引用的实体类未添加 @Table 注解");
 
             String fkName = fa.getAnnotation().name();
             if (!StringUtils.hasLength(fkName)) {
@@ -210,15 +379,21 @@ public class DDLHelper {
             if (StringUtils.hasLength(fa.getAnnotation().referencesColumn())) {
                 referencesColumn = fa.getAnnotation().referencesColumn();
             } else {
-                referencesColumn = ModelClassUtils.getTableColumnName(table, ModelClassUtils.getIdField(fa.getAnnotation().references()));
+                // 引用列必须按被引用实体的 @Table 规则计算，不能误用当前表的命名规则。
+                Field referencedId = ModelClassUtils.getIdField(fa.getAnnotation().references());
+                Assert.isNotNull(referencedId, fa.getAnnotation().references().getName() + " 外键引用实体必须存在 @Id 字段");
+                referencesColumn = ModelClassUtils.getTableColumnName(referencedTable, referencedId);
             }
+            String referencedTableName = StringUtils.hasLength(referencedTable.schema())
+                    ? quoteIdentifier(referencedTable.schema()) + "." + quoteIdentifier(referencedTable.value())
+                    : quoteIdentifier(referencedTable.value());
             String onDelete = Objects.equals(fa.getAnnotation().onDelete(), ForeignKeyAction.NONE) ? "" : " ON DELETE " + fa.getAnnotation().onDelete();
             String onUpdate = Objects.equals(fa.getAnnotation().onUpdate(), ForeignKeyAction.NONE) ? "" : " ON UPDATE " + fa.getAnnotation().onUpdate();
-            foreignKeySet.add(String.format("CONSTRAINT `%s` FOREIGN KEY (`%s`) REFERENCES `%s` (`%s`)%s%s",
-                    fkName,
-                    ModelClassUtils.getTableColumnName(table, fa.getField()),
-                    annotation.value(),
-                    referencesColumn,
+            foreignKeySet.add(String.format("CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s (%s)%s%s",
+                    quoteIdentifier(fkName),
+                    quoteIdentifier(ModelClassUtils.getTableColumnName(table, fa.getField())),
+                    referencedTableName,
+                    quoteIdentifier(referencesColumn),
                     onDelete,
                     onUpdate));
         }
@@ -253,15 +428,16 @@ public class DDLHelper {
         // 创建外键
         Set<String> foreignKeySet = new HashSet<>();
         Set<String> foreignKeyNameSet = getForeignKeySet(entityType, table, fieldAndAnnotations, foreignKeySet);
+        String currentSchema = statement.getConnection().getCatalog();
         for (String foreignKeySql : foreignKeySet) {
-            foreignKeySortMap.put(normalizeForeignKeySql(foreignKeySql), foreignKeySql);
+            foreignKeySortMap.put(normalizeForeignKeySql(foreignKeySql, currentSchema), foreignKeySql);
         }
 
         // 获取已有外键
         List<String> dropSqls = new ArrayList<>();
         Map<String, String> existForeignKeyMap = getExistForeignKeyMap(statement, table.value());
         for (Map.Entry<String, String> entry : existForeignKeyMap.entrySet()) {
-            String normalizedSql = normalizeForeignKeySql(entry.getValue());
+            String normalizedSql = normalizeForeignKeySql(entry.getValue(), currentSchema);
             if (foreignKeySortMap.containsKey(normalizedSql)) {
                 foreignKeySortMap.remove(normalizedSql);
                 continue;
@@ -282,6 +458,7 @@ public class DDLHelper {
                 SELECT
                   kcu.CONSTRAINT_NAME,
                   kcu.COLUMN_NAME,
+                  kcu.REFERENCED_TABLE_SCHEMA,
                   kcu.REFERENCED_TABLE_NAME,
                   kcu.REFERENCED_COLUMN_NAME,
                   rc.DELETE_RULE,
@@ -296,17 +473,19 @@ public class DDLHelper {
                   AND kcu.REFERENCED_TABLE_NAME IS NOT NULL
                 ORDER BY kcu.CONSTRAINT_NAME, kcu.ORDINAL_POSITION
                 """.formatted(tableName);
-        ResultSet resultSet = statement.executeQuery(sql);
         Map<String, List<ForeignKeyColumn>> columnMap = new HashMap<>();
-        while (resultSet.next()) {
-            String fkName = resultSet.getString("CONSTRAINT_NAME");
-            ForeignKeyColumn column = new ForeignKeyColumn();
-            column.setColumnName(resultSet.getString("COLUMN_NAME"));
-            column.setReferencedTableName(resultSet.getString("REFERENCED_TABLE_NAME"));
-            column.setReferencedColumnName(resultSet.getString("REFERENCED_COLUMN_NAME"));
-            column.setDeleteRule(resultSet.getString("DELETE_RULE"));
-            column.setUpdateRule(resultSet.getString("UPDATE_RULE"));
-            columnMap.computeIfAbsent(fkName, k -> new ArrayList<>()).add(column);
+        try (ResultSet resultSet = statement.executeQuery(sql)) {
+            while (resultSet.next()) {
+                String fkName = resultSet.getString("CONSTRAINT_NAME");
+                ForeignKeyColumn column = new ForeignKeyColumn();
+                column.setColumnName(resultSet.getString("COLUMN_NAME"));
+                column.setReferencedTableSchema(resultSet.getString("REFERENCED_TABLE_SCHEMA"));
+                column.setReferencedTableName(resultSet.getString("REFERENCED_TABLE_NAME"));
+                column.setReferencedColumnName(resultSet.getString("REFERENCED_COLUMN_NAME"));
+                column.setDeleteRule(resultSet.getString("DELETE_RULE"));
+                column.setUpdateRule(resultSet.getString("UPDATE_RULE"));
+                columnMap.computeIfAbsent(fkName, k -> new ArrayList<>()).add(column);
+            }
         }
         Map<String, String> foreignKeyMap = new HashMap<>();
         for (Map.Entry<String, List<ForeignKeyColumn>> entry : columnMap.entrySet()) {
@@ -322,10 +501,13 @@ public class DDLHelper {
                     .collect(Collectors.joining(","));
             String onDelete = "NONE".equalsIgnoreCase(first.getDeleteRule()) ? "" : " ON DELETE " + first.getDeleteRule();
             String onUpdate = "NONE".equalsIgnoreCase(first.getUpdateRule()) ? "" : " ON UPDATE " + first.getUpdateRule();
-            foreignKeyMap.put(entry.getKey(), String.format("CONSTRAINT `%s` FOREIGN KEY (%s) REFERENCES `%s` (%s)%s%s",
-                    entry.getKey(),
+            String referencedTable = StringUtils.hasLength(first.getReferencedTableSchema())
+                    ? quoteIdentifier(first.getReferencedTableSchema()) + "." + quoteIdentifier(first.getReferencedTableName())
+                    : quoteIdentifier(first.getReferencedTableName());
+            foreignKeyMap.put(entry.getKey(), String.format("CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s (%s)%s%s",
+                    quoteIdentifier(entry.getKey()),
                     columnNames,
-                    first.getReferencedTableName(),
+                    referencedTable,
                     referencedColumnNames,
                     onDelete,
                     onUpdate));
@@ -333,8 +515,8 @@ public class DDLHelper {
         return foreignKeyMap;
     }
 
-    private String normalizeForeignKeySql(String sql) {
-        return sql.toLowerCase()
+    private String normalizeForeignKeySql(String sql, String currentSchema) {
+        String normalized = sql.toLowerCase()
                 .replaceAll("\\s+", "")
                 .replace("`", "")
                 .replace("ondeletenoaction", "")
@@ -342,6 +524,12 @@ public class DDLHelper {
                 .replace("onupdatenoaction", "")
                 .replace("onupdaterestrict", "")
                 .trim();
+        // 当前库显式限定和未限定在 MySQL 中语义相同，统一后避免每次启动重复重建外键；
+        // 其他 schema 则保留限定名，以便真正的跨库引用变化能够触发同步。
+        if (StringUtils.hasText(currentSchema)) {
+            normalized = normalized.replace(currentSchema.toLowerCase() + ".", "");
+        }
+        return normalized;
     }
 
 
@@ -362,18 +550,19 @@ public class DDLHelper {
             indexSet.add(String.format("CREATE%s INDEX %s USING BTREE ON %s (%s);", i.unique() ? " UNIQUE" : "", i.name(), table.value(), String.join(",", i.columns())));
         }
         // 获取已有索引
-        ResultSet indexResultSet = statement.executeQuery("SHOW INDEX FROM " + table.value() + ";");
         List<IndexResult> indexResults = new ArrayList<>();
-        while (indexResultSet.next()) {
-            if (indexResultSet.getString("Key_name").equals("PRIMARY") || fkNameSet.contains(indexResultSet.getString("Key_name"))) {
-                continue;
+        try (ResultSet indexResultSet = statement.executeQuery("SHOW INDEX FROM " + table.value() + ";")) {
+            while (indexResultSet.next()) {
+                if (indexResultSet.getString("Key_name").equals("PRIMARY") || fkNameSet.contains(indexResultSet.getString("Key_name"))) {
+                    continue;
+                }
+                IndexResult indexResult = new IndexResult();
+                indexResult.setIndex(indexResultSet.getInt("Seq_in_index"));
+                indexResult.setName(indexResultSet.getString("Key_name"));
+                indexResult.setColumn(indexResultSet.getString("Column_name"));
+                indexResult.setUnique(!indexResultSet.getBoolean("Non_unique"));
+                indexResults.add(indexResult);
             }
-            IndexResult indexResult = new IndexResult();
-            indexResult.setIndex(indexResultSet.getInt("Seq_in_index"));
-            indexResult.setName(indexResultSet.getString("Key_name"));
-            indexResult.setColumn(indexResultSet.getString("Column_name"));
-            indexResult.setUnique(!indexResultSet.getBoolean("Non_unique"));
-            indexResults.add(indexResult);
         }
 
         Map<String, List<IndexResult>> indexNameGroup = indexResults.stream().collect(Collectors.groupingBy(IndexResult::getName));
@@ -409,21 +598,75 @@ public class DDLHelper {
      * @throws SQLException
      */
     private void updateTableColumn(Statement statement, Class<?> entityType, Table table) throws SQLException {
-        ResultSet resultSet = statement.executeQuery("show columns from " + table.value() + ";");
         Map<String, TableColumn> existField = new HashMap<>();
-        while (resultSet.next()) {
-            TableColumn tableColumn = new TableColumn();
-            tableColumn.setType(resultSet.getString("Type"));
-            tableColumn.setField(resultSet.getString("Field"));
-            tableColumn.setDefaultValue(resultSet.getString("Default"));
-            tableColumn.setNotNull(resultSet.getString("Null").equals("NO"));
-            existField.put(tableColumn.getField(), tableColumn);
+        try (ResultSet resultSet = statement.executeQuery("show columns from " + table.value() + ";")) {
+            while (resultSet.next()) {
+                TableColumn tableColumn = new TableColumn();
+                tableColumn.setType(resultSet.getString("Type"));
+                tableColumn.setField(resultSet.getString("Field"));
+                tableColumn.setDefaultValue(resultSet.getString("Default"));
+                tableColumn.setNotNull("NO".equals(resultSet.getString("Null")));
+                tableColumn.setAutoIncrement(resultSet.getString("Extra") != null
+                        && resultSet.getString("Extra").toLowerCase().contains("auto_increment"));
+                existField.put(tableColumn.getField(), tableColumn);
+            }
         }
         Set<String> sqls = getTableAddFields(table, entityType, existField);
         for (String sql : sqls) {
             log.info(sql);
             statement.execute(sql);
         }
+        // 字段新增与主键同步分开处理，避免复合主键被拆成多个 ADD PRIMARY KEY。
+        reconcilePrimaryKey(statement, table, entityType);
+    }
+
+    /**
+     * 将数据库主键调整为实体上声明的主键，主键字段一次性合并，支持复合主键。
+     */
+    private void reconcilePrimaryKey(Statement statement, Table table, Class<?> entityType) throws SQLException {
+        List<String> desiredColumns = getPrimaryKeyColumns(table, entityType);
+        List<String> existingColumns = new ArrayList<>();
+        try (ResultSet resultSet = statement.executeQuery("SHOW INDEX FROM " + table.value() + ";")) {
+            while (resultSet.next()) {
+                if ("PRIMARY".equalsIgnoreCase(resultSet.getString("Key_name"))) {
+                    existingColumns.add(resultSet.getString("Column_name"));
+                }
+            }
+        }
+        if (existingColumns.equals(desiredColumns)) {
+            return;
+        }
+        if (!existingColumns.isEmpty()) {
+            String sql = "ALTER TABLE " + table.value() + " DROP PRIMARY KEY";
+            log.info(sql);
+            statement.execute(sql);
+        }
+        if (!desiredColumns.isEmpty()) {
+            String columns = desiredColumns.stream()
+                    .map(DDLHelper::quoteIdentifier)
+                    .collect(Collectors.joining(","));
+            String sql = "ALTER TABLE " + table.value() + " ADD PRIMARY KEY (" + columns + ")";
+            log.info(sql);
+            statement.execute(sql);
+        }
+    }
+
+    private List<String> getPrimaryKeyColumns(Table table, Class<?> entityClass) {
+        List<String> columns = new ArrayList<>();
+        Set<String> visited = new HashSet<>();
+        do {
+            for (Field field : entityClass.getDeclaredFields()) {
+                if (field.getDeclaredAnnotation(Id.class) == null) {
+                    continue;
+                }
+                String column = ModelClassUtils.getTableColumnName(table, field);
+                if (visited.add(column)) {
+                    columns.add(column);
+                }
+            }
+            entityClass = entityClass.getSuperclass();
+        } while (entityClass != null && entityClass != Object.class);
+        return columns;
     }
 
 
@@ -518,6 +761,12 @@ public class DDLHelper {
      * @param entityClass
      * @return
      */
+    /**
+     * 计算字段新增/修改 SQL。
+     *
+     * <p>自增属性属于列定义的一部分，必须和类型、非空、默认值一起比较；
+     * 主键则由 reconcilePrimaryKey 统一处理，避免复合主键被拆成多个语句。</p>
+     */
     private Set<String> getTableAddFields(Table table, Class<?> entityClass, Map<String, TableColumn> existFields) {
         Set<String> sqls = new HashSet<>();
         String tableName = table.value();
@@ -547,15 +796,13 @@ public class DDLHelper {
                             || existFields.get(fieldName).isNotNull() != notNull
                             || (tableField == null && existFields.get(fieldName).getDefaultValue() != null)
                             || !equalsDefaultValue(tableField, existFields.get(fieldName))
+                            || existFields.get(fieldName).isAutoIncrement() != (id != null && id.idType() == IdType.AUTO)
                     ) {
                         sqls.add("ALTER TABLE " + tableName + " MODIFY COLUMN " + sql);
                     }
                     continue;
                 }
                 sqls.add("ALTER TABLE " + tableName + " ADD " + sql);
-                if (id != null) {
-                    sqls.add("ALTER TABLE " + tableName + " ADD CONSTRAINT " + tableName + "_pk PRIMARY KEY(" + fieldName + ")");
-                }
             }
 
 
@@ -589,10 +836,11 @@ public class DDLHelper {
             Assert.isNotNull(tableField, classTypeName + " 逻辑删除字段需要配合 @TableField 注解使用");
             Assert.isFalse(tableField.notNull() && !StringUtils.hasLength(tableField.defaultValue()), classTypeName + " 逻辑删除字段notNull时，默认 defaultValue 值必填");
 
-            Assert.isTrue(declaredField.getType().isAssignableFrom(Boolean.class)
-                    || declaredField.getType().isAssignableFrom(boolean.class)
-                    || declaredField.getType().isAssignableFrom(Integer.class)
-                    || declaredField.getType().isAssignableFrom(int.class), classTypeName + " 逻辑删除字段只能是 boolean 或者 int 类型");
+            Class<?> fieldType = declaredField.getType();
+            Assert.isTrue(fieldType == Boolean.class
+                    || fieldType == boolean.class
+                    || fieldType == Integer.class
+                    || fieldType == int.class, classTypeName + " 逻辑删除字段只能是 boolean 或者 int 类型");
 
         }
         return tableField;
@@ -629,6 +877,7 @@ public class DDLHelper {
     @Setter
     static class ForeignKeyColumn {
         private String columnName;
+        private String referencedTableSchema;
         private String referencedTableName;
         private String referencedColumnName;
         private String deleteRule;
